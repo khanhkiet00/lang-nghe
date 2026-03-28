@@ -11,4 +11,5 @@ Dựa trên tài liệu SPEC.md, các lựa chọn công nghệ quan trọng cho
     - **Password hashing:** bcrypt (10 rounds)
     - **OTP flow:** 6-digit code, 5-min expiry, sent via Resend API
     - **RBAC:** `@Roles()` decorator + guard checking `user.roles` array (buyer, artisan, admin)
-    - **Test:** E2E coverage of register → verify-OTP → login → refresh → /me → logout (2/2 pass)
+    - **Test:** E2E coverage of register → verify-OTP → login → refresh → /me → logout (2/2 pass)- **Frontend tuần 3:** chuyển page / thành flow form + auth/login + artisans/me + upload Cloudinary + preview ảnh. Dùng image URL echo và Next.js SSR slug dynamic route.
+- **ESLint:** dùng config `next/core-web-vitals` trực tiếp (loại bỏ `next/typescript` lỗi).

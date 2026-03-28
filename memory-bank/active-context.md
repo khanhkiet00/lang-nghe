@@ -1,1 +1,1 @@
-Tuần 3: Hồ sơ artisan - tạo profile, upload ảnh (Cloudinary), slug SEO, trang /nghe-nhan/[slug] SSR.
+Tuần 3: Hồ sơ artisan - tạo profile, upload ảnh (Cloudinary), slug SEO, trang /nghe-nhan/[slug] SSR.\n- Frontend page.tsx đã triển khai form + logic client-side, vẫn phải test thực tế backend auth + artisan endpoint.\n- Lint đã chạy OK với config next/core-web-vitals.

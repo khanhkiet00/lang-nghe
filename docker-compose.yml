@@ -45,6 +45,9 @@ services:
     ports: ["3000:3000"]
     volumes: ["./frontend:/app", "/app/node_modules", "/app/.next"]
     env_file: .env
+    environment:
+      # Use service name instead of localhost for inter-container communication
+      NEXT_PUBLIC_API_URL: http://backend:3001/api/v1
     depends_on:
       - backend
 

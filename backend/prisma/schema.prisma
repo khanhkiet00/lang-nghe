@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -8,19 +9,36 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  phone         String?        @unique
+  id            String           @id @default(uuid())
+  email         String           @unique
+  phone         String?          @unique
   password      String
   roles         UserRole[]
   otps          Otp[]
   refreshTokens RefreshToken[]
-  walletBalance Int           @default(0)
-  reputationScore Float       @default(0)
-  isSuspended   Boolean       @default(false)
-  isB2bEnabled  Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  artisanProfile ArtisanProfile?
+  walletBalance Int              @default(0)
+  reputationScore Float          @default(0)
+  isSuspended   Boolean          @default(false)
+  isB2bEnabled  Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model ArtisanProfile {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  fullName    String
+  slug        String   @unique
+  description String?
+  expertise   String?
+  location    String?
+  avatarUrl   String?
+  cccdUrl     String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model UserRole {
