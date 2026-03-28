@@ -1,1 +1,1 @@
-Tuần 1: Setup & Infrastructure
+Tuần 1: Setup & Infrastructure - done (docker-compose, backend + frontend skeleton, prisma, health endpoint, nginx)
