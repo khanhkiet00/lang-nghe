@@ -5,7 +5,7 @@
 | Tuần | Công việc kỹ thuật | Kết quả kiểm tra |
 |---|---|---|
 | 1 | Setup: Docker Compose (PG+Redis+Nginx+Adminer), folder structure, ESLint, Prettier, Prisma schema | Hoàn thành: docker-compose up, backend+frontend skeleton, Prisma migrate, Health API, nginx gateway |
-| 2 | Auth: đăng ký + OTP (Resend) + đăng nhập + JWT (access+refresh) + RBAC guard | POST /auth/register → nhận OTP email, /auth/login → nhận JWT |
+| 2 | Auth: đăng ký + OTP (Resend) + đăng nhập + JWT (access+refresh) + RBAC guard | ✅ Hoàn thành: register + verify-OTP + login + refresh + RBAC @Roles guard, HttpOnly cookies, E2E tests 2/2 đạt |
 | 3 | Hồ sơ: tạo profile, upload ảnh (Cloudinary signed URL), slug SEO, trang nghe-nhan/[slug] SSR | Trang /nghe-nhan/[slug] load được, có meta tag SEO |
 | 4 | Sản phẩm: CRUD + ảnh + tag + FTS (pg_trgm + unaccent) + trang san-pham/[slug] SSR | Tìm kiếm tiếng Việt có dấu hoạt động, trang SP có SEO |
 | 5 | Feed: hiển thị SP, lọc, sắp xếp, infinite scroll. Giỏ hàng (localStorage + DB khi đăng nhập). | Feed hiện đúng, giỏ hàng giữ sau khi refresh |

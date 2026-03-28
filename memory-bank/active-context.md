@@ -1,1 +1,1 @@
-Tuần 1: Setup & Infrastructure - done (docker-compose, backend + frontend skeleton, prisma, health endpoint, nginx)
+Tuần 3: Hồ sơ artisan - tạo profile, upload ảnh (Cloudinary), slug SEO, trang /nghe-nhan/[slug] SSR.
