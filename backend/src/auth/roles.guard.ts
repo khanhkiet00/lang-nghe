@@ -1,6 +1,12 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLE_KEY } from './roles.decorator';
+import type { AuthenticatedRequest } from './interfaces/authenticated-request.interface';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -15,14 +21,16 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
 
     if (!user?.roles || !Array.isArray(user.roles)) {
       throw new ForbiddenException('Không có quyền truy cập');
     }
 
-    const hasRole = user.roles.some((role: string) => requiredRoles.includes(role));
+    const hasRole = user.roles.some((role: string) =>
+      requiredRoles.includes(role),
+    );
     if (!hasRole) {
       throw new ForbiddenException('Không có quyền truy cập');
     }

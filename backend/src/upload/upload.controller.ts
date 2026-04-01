@@ -13,7 +13,7 @@ export class UploadController {
   }
 
   @Post('url')
-  async getUploadUrl(@Body() body: { folder?: string; publicId?: string }) {
+  getUploadUrl(@Body() body: { folder?: string; publicId?: string }) {
     const { folder = 'artisans', publicId } = body;
 
     const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
@@ -24,14 +24,17 @@ export class UploadController {
       throw new Error('Cloudinary configuration missing');
     }
 
-    const timestamp = Math.round((new Date).getTime() / 1000);
+    const timestamp = Math.round(new Date().getTime() / 1000);
 
-    const signature = cloudinary.utils.api_sign_request({
-      timestamp,
-      folder,
-      public_id: publicId,
-      upload_preset: 'artisan_profiles',
-    }, apiSecret);
+    const signature = cloudinary.utils.api_sign_request(
+      {
+        timestamp,
+        folder,
+        public_id: publicId,
+        upload_preset: 'artisan_profiles',
+      },
+      apiSecret,
+    );
 
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
 

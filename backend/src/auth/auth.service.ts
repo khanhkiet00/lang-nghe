@@ -1,20 +1,34 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import axios from 'axios';
 import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
+import type { Otp } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
+  private readonly transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string, phone?: string, role = 'buyer') {
+  async register(email: string, password: string, phone?: string) {
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
       throw new BadRequestException('Email đã được sử dụng');
@@ -26,7 +40,7 @@ export class AuthService {
       email,
       phone,
       password: hashedPassword,
-      roles: [role],
+      roles: ['buyer', 'artisan'],
     });
 
     const otp = await this.createOtp(email, 'register');
@@ -43,38 +57,28 @@ export class AuthService {
   }
 
   private async sendOtpEmail(email: string, code: string) {
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.warn('RESEND_API_KEY undefined, OTP not sent to email');
-      return;
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new InternalServerErrorException('Email service is not configured');
     }
 
     try {
-      await axios.post(
-        'https://api.resend.com/emails',
-        {
-          from: process.env.EMAIL_FROM || 'noreply@example.com',
-          to: email,
-          subject: 'Mã OTP xác thực',
-          html: `<p>Mã xác thực của bạn là <strong>${code}</strong>. Hết hạn sau 5 phút.</p>`,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      await this.transporter.sendMail({
+        from: `"Nen Tang Lang Nghe" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Ma OTP xac thuc',
+        html: `<p>Ma xac thuc cua ban la <strong>${code}</strong>. Het han sau 5 phut.</p>`,
+      });
     } catch (error) {
-      console.error('Failed to send OTP email', error);
+      console.error('Failed to send OTP email via Gmail', error);
+      throw new InternalServerErrorException('Khong the gui email OTP luc nay');
     }
   }
 
-  async createOtp(email: string, purpose: string = 'register') {
+  async createOtp(email: string, purpose = 'register'): Promise<Otp> {
     const code = this.generateOtpCode();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    const otp = await (this.prisma as any).otp.create({
+    const otp = await this.prisma.otp.create({
       data: {
         email,
         code,
@@ -88,7 +92,7 @@ export class AuthService {
   }
 
   async verifyOtp(email: string, otpCode: string, purpose = 'register') {
-    const otp = await (this.prisma as any).otp.findFirst({
+    const otp = await this.prisma.otp.findFirst({
       where: {
         email,
         code: otpCode,
@@ -101,12 +105,32 @@ export class AuthService {
       throw new UnauthorizedException('OTP không hợp lệ hoặc đã hết hạn');
     }
 
-    await (this.prisma as any).otp.update({
+    await this.prisma.otp.update({
       where: { id: otp.id },
       data: { used: true },
     });
 
+    if (purpose === 'register') {
+      await this.prisma.user.update({
+        where: { email },
+        data: { isEmailVerified: true },
+      });
+    }
+
     return true;
+  }
+
+  private async hasVerifiedRegisterOtp(email: string): Promise<boolean> {
+    const verifiedOtp = await this.prisma.otp.findFirst({
+      where: {
+        email,
+        purpose: 'register',
+        used: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return Boolean(verifiedOtp);
   }
 
   async login(email: string, password: string) {
@@ -120,7 +144,25 @@ export class AuthService {
       throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
     }
 
-    const roles = (user as any).roles?.map((item) => item.role) ?? [];
+    let isVerified = user.isEmailVerified;
+    if (!isVerified) {
+      const hasVerifiedOtp = await this.hasVerifiedRegisterOtp(email);
+      if (hasVerifiedOtp) {
+        await this.prisma.user.update({
+          where: { email },
+          data: { isEmailVerified: true },
+        });
+        isVerified = true;
+      }
+    }
+
+    if (!isVerified) {
+      throw new UnauthorizedException(
+        'Email chưa xác thực. Vui lòng xác thực OTP trước khi đăng nhập',
+      );
+    }
+
+    const roles = user.roles.map((item) => item.role);
     const payload: JwtPayload = { sub: user.id, email: user.email, roles };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -131,7 +173,7 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    await (this.prisma as any).refreshToken.create({
+    await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
         token: await bcrypt.hash(refreshToken, 10),
@@ -139,14 +181,18 @@ export class AuthService {
       },
     });
 
-    return { accessToken, refreshToken, user: { id: user.id, email: user.email, roles } };
+    return {
+      accessToken,
+      refreshToken,
+      user: { id: user.id, email: user.email, roles },
+    };
   }
 
   async refresh(refreshToken: string) {
     try {
       const payload = this.jwtService.verify<JwtPayload>(refreshToken);
 
-      const persisted = await (this.prisma as any).refreshToken.findFirst({
+      const persisted = await this.prisma.refreshToken.findFirst({
         where: {
           userId: payload.sub,
           revoked: false,
@@ -169,20 +215,20 @@ export class AuthService {
         throw new UnauthorizedException('Người dùng không tồn tại');
       }
 
-      const roles = (user as any).roles?.map((r) => r.role) ?? [];
+      const roles = user.roles.map((r) => r.role);
       const newPayload: JwtPayload = { sub: user.id, email: user.email, roles };
 
       return {
         accessToken: this.jwtService.sign(newPayload, { expiresIn: '15m' }),
         refreshToken: this.jwtService.sign(newPayload, { expiresIn: '7d' }),
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Refresh token không hợp lệ');
     }
   }
 
   async logout(userId: string) {
-    await (this.prisma as any).refreshToken.updateMany({
+    await this.prisma.refreshToken.updateMany({
       where: { userId, revoked: false },
       data: { revoked: true },
     });

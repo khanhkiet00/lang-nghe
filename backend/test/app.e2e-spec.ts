@@ -6,6 +6,22 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
+function asRecord(value: unknown): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('Expected object response body');
+  }
+  return value as Record<string, unknown>;
+}
+
+function getString(body: unknown, key: string): string {
+  const record = asRecord(body);
+  const value = record[key];
+  if (typeof value !== 'string') {
+    throw new Error(`Expected string field: ${key}`);
+  }
+  return value;
+}
+
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -49,10 +65,11 @@ describe('AppController (e2e)', () => {
     expect(registerResponse.status).toBe(201);
     expect(registerResponse.body).toHaveProperty('user');
     expect(registerResponse.body).toHaveProperty('otp');
+    const registerOtp = getString(registerResponse.body, 'otp');
 
     const verifyResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/verify-otp')
-      .send({ email, otp: registerResponse.body.otp });
+      .send({ email, otp: registerOtp });
 
     expect(verifyResponse.status).toBe(201);
     expect(verifyResponse.body).toEqual({ ok: true });
@@ -66,15 +83,21 @@ describe('AppController (e2e)', () => {
     expect(loginResponse.body).toHaveProperty('user');
     expect(loginResponse.get('Set-Cookie')).toBeDefined();
 
-    const accessToken = loginResponse.body.accessToken;
-    const setCookieHeader = loginResponse.get('Set-Cookie');
+    const accessToken = getString(loginResponse.body, 'accessToken');
+    const setCookieHeader: unknown = loginResponse.get('Set-Cookie');
     // Extract just the cookie name=value part, without the attributes
-    let cookie: string;
+    let cookie = '';
     if (Array.isArray(setCookieHeader)) {
-      cookie = setCookieHeader[0].split(';')[0]; // Get just "refreshToken=<value>"
-    } else {
+      const firstCookie = setCookieHeader.find(
+        (item): item is string => typeof item === 'string',
+      );
+      if (firstCookie) {
+        cookie = firstCookie.split(';')[0];
+      }
+    } else if (typeof setCookieHeader === 'string') {
       cookie = setCookieHeader.split(';')[0];
     }
+    expect(cookie).toBeTruthy();
 
     const meResponse = await request(app.getHttpServer())
       .get('/api/v1/auth/me')
@@ -102,10 +125,11 @@ describe('AppController (e2e)', () => {
 
     expect(registerResponse.status).toBe(201);
     expect(registerResponse.body).toHaveProperty('otp');
+    const registerOtp = getString(registerResponse.body, 'otp');
 
     const verifyResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/verify-otp')
-      .send({ email, otp: registerResponse.body.otp });
+      .send({ email, otp: registerOtp });
 
     expect(verifyResponse.status).toBe(201);
 
@@ -114,7 +138,7 @@ describe('AppController (e2e)', () => {
       .send({ email, password });
 
     expect(loginResponse.status).toBe(200);
-    const token = loginResponse.body.accessToken;
+    const token = getString(loginResponse.body, 'accessToken');
 
     const profileData = {
       fullName: 'Nghệ nhân Test',
@@ -133,13 +157,17 @@ describe('AppController (e2e)', () => {
     expect(createProfileResponse.status).toBe(201);
     expect(createProfileResponse.body).toHaveProperty('slug');
 
-    const slug = createProfileResponse.body.slug;
+    const slug = getString(createProfileResponse.body, 'slug');
 
-    const publicProfileResponse = await request(app.getHttpServer())
-      .get(`/api/v1/artisans/${slug}`);
+    const publicProfileResponse = await request(app.getHttpServer()).get(
+      `/api/v1/artisans/${slug}`,
+    );
 
     expect(publicProfileResponse.status).toBe(200);
-    expect(publicProfileResponse.body).toHaveProperty('fullName', profileData.fullName);
+    expect(publicProfileResponse.body).toHaveProperty(
+      'fullName',
+      profileData.fullName,
+    );
     expect(publicProfileResponse.body).toHaveProperty('user');
 
     const meProfileResponse = await request(app.getHttpServer())
