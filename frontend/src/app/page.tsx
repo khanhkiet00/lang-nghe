@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -104,63 +106,165 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#09090B] text-zinc-100 p-4 md:p-10">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm">
-          <h1 className="text-3xl font-bold mb-3">Làng Nghề - Trạng thái</h1>
-          <p className="text-zinc-300 mb-4">Đã sẵn sàng cho luồng đăng ký artisan, upload Cloudinary, và xem profile SSR.</p>
-          <p className="text-zinc-400">API base: <code className="text-violet-300">{API_BASE}</code></p>
+    <main className="relative min-h-screen overflow-hidden bg-[#09090B] text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%),radial-gradient(circle_at_85%_15%,rgba(244,114,182,0.07),transparent_35%)]" />
+
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 p-4 md:p-8">
+        <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm md:p-8">
+          <p className="text-sm uppercase tracking-[0.24em] text-zinc-400">Lang Nghe Workspace</p>
+          <h1 className="mt-3 text-2xl font-semibold leading-tight text-zinc-100 md:text-4xl">
+            Tạo hồ sơ nghệ nhân nhanh, sạch, tối giản.
+          </h1>
+          <p className="mt-4 max-w-3xl text-base text-zinc-300">
+            Luồng hiện tại đã có: đăng nhập, tạo hoặc cập nhật hồ sơ artisan, upload ảnh lên Cloudinary, và xem trang public theo slug SSR.
+          </p>
+          <p className="mt-4 text-sm text-zinc-400">
+            API base: <span className="rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-200">{API_BASE}</span>
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/auth"
+              className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300 transition-all duration-200 ease-out hover:border-zinc-600 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+            >
+              Mo trang auth
+            </Link>
+            <Link
+              href="/dashboard/nghe-nhan"
+              className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300 transition-all duration-200 ease-out hover:border-zinc-600 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+            >
+              Mo dashboard nghe nhan
+            </Link>
+          </div>
         </section>
 
-        <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold mb-4">Tạo hồ sơ nghệ nhân</h2>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm lg:col-span-2">
+            <h2 className="text-lg font-semibold text-zinc-100 md:text-2xl">Tạo hồ sơ nghệ nhân</h2>
+            <p className="mt-2 text-sm text-zinc-400">Hoàn tất thông tin cơ bản và upload avatar trước khi tạo profile.</p>
 
-          <form className="space-y-4" onSubmit={createArtisan}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" required />
-              <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mật khẩu" type="password" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" required />
-            </div>
+            <form className="mt-6 space-y-4" onSubmit={createArtisan}>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                  required
+                />
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mật khẩu"
+                  type="password"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                  required
+                />
+              </div>
 
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Họ và tên" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" required />
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Giới thiệu" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" rows={3} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input value={expertise} onChange={(e) => setExpertise(e.target.value)} placeholder="Chuyên môn" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" />
-              <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Địa điểm" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" />
-            </div>
+              <input
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Họ và tên"
+                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                required
+              />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="Avatar URL" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" />
-              <input value={cccdUrl} onChange={(e) => setCccdUrl(e.target.value)} placeholder="CCCD/ID URL" className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2" />
-            </div>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Giới thiệu"
+                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                rows={3}
+              />
 
-            <div className="space-y-2">
-              <label className="text-sm text-zinc-400">Upload avatar lên Cloudinary</label>
-              <input type="file" accept="image/*" className="w-full text-sm text-zinc-200" onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                await handleUploadAvatar(file);
-              }} />
-            </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input
+                  value={expertise}
+                  onChange={(e) => setExpertise(e.target.value)}
+                  placeholder="Chuyên môn"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                />
+                <input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Địa điểm"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                />
+              </div>
 
-            <button type="submit" className="bg-violet-600 hover:bg-violet-500 transition-all rounded-md px-4 py-2 text-white font-semibold" disabled={loading}>
-              {loading ? 'Đang xử lý...' : 'Tạo hồ sơ artisan'}
-            </button>
-          </form>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <input
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="Avatar URL"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                />
+                <input
+                  value={cccdUrl}
+                  onChange={(e) => setCccdUrl(e.target.value)}
+                  placeholder="CCCD URL"
+                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
+                />
+              </div>
 
-          {message && <p className="text-sm text-zinc-300 mt-3 break-words">{message}</p>}
-          {avatarUrl && (
-            <div className="mt-4">
-              <p className="text-zinc-300 text-sm">Ảnh avatar tải lên:</p>
-              <img src={avatarUrl} alt="avatar" className="mt-2 max-h-40 rounded-md border border-zinc-700 object-cover" />
-            </div>
-          )}
-        </section>
+              <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
+                <label className="mb-2 block text-sm text-zinc-400">Upload avatar lên Cloudinary</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full text-sm text-zinc-300 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-800 file:px-3 file:py-2 file:text-zinc-200 hover:file:bg-zinc-700"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    await handleUploadAvatar(file);
+                  }}
+                />
+              </div>
 
-        <section className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold mb-3">Xem profile nghệ nhân</h2>
-          <p className="text-zinc-300">Sau khi tạo thành công, mở đường dẫn:</p>
-          <pre className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200">http://localhost:3000/nghe-nhan/your-slug</pre>
-        </section>
+              <button
+                type="submit"
+                className="rounded-md bg-violet-600 px-4 py-2 font-semibold text-white transition-all duration-200 ease-out hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={loading}
+              >
+                {loading ? 'Đang xử lý...' : 'Tạo hồ sơ artisan'}
+              </button>
+            </form>
+
+            {message && <p className="mt-4 break-words rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300">{message}</p>}
+          </section>
+
+          <aside className="space-y-6">
+            <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-5 backdrop-blur-sm">
+              <h3 className="text-base font-semibold text-zinc-100">Luồng đã có</h3>
+              <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+                <li>Đăng nhập lấy access token</li>
+                <li>Tạo hoặc cập nhật hồ sơ nghệ nhân</li>
+                <li>Upload avatar lên Cloudinary</li>
+                <li>Xem hồ sơ public bằng slug</li>
+              </ul>
+            </section>
+
+            <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-5 backdrop-blur-sm">
+              <h3 className="text-base font-semibold text-zinc-100">Link xem profile</h3>
+              <p className="mt-2 text-sm text-zinc-400">Sau khi tạo thành công, mở:</p>
+              <p className="mt-3 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
+                /nghe-nhan/your-slug
+              </p>
+              {avatarUrl && (
+                <div className="mt-4">
+                  <p className="text-sm text-zinc-400">Avatar preview</p>
+                  <Image
+                    src={avatarUrl}
+                    alt="avatar"
+                    width={640}
+                    height={320}
+                    className="mt-2 max-h-44 w-full rounded-md border border-zinc-700 object-cover"
+                  />
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
       </div>
     </main>
   );

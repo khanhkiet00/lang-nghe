@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Join the Heritage | The Digital Artisan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#482904",
+              "inverse-primary": "#fdbdab",
+              "surface-container-lowest": "#ffffff",
+              "error-dim": "#4e0309",
+              "primary-dim": "#754638",
+              "surface-bright": "#f9f9f7",
+              "on-tertiary-fixed": "#271300",
+              "on-background": "#2e3432",
+              "error": "#9f403d",
+              "on-tertiary-fixed-variant": "#53320b",
+              "on-secondary-container": "#4b5625",
+              "surface-container": "#ecefec",
+              "error-container": "#fe8983",
+              "surface-tint": "#835244",
+              "secondary-fixed": "#dbe9a9",
+              "tertiary-fixed": "#d9a777",
+              "tertiary-dim": "#704b23",
+              "surface-container-high": "#e5e9e6",
+              "on-primary-fixed": "#5e3427",
+              "inverse-on-surface": "#9c9d9b",
+              "outline-variant": "#adb3b0",
+              "inverse-surface": "#0d0f0e",
+              "secondary-dim": "#4c5826",
+              "surface-container-highest": "#dee4e0",
+              "secondary-container": "#dbe9a9",
+              "on-surface": "#2e3432",
+              "tertiary": "#7e572e",
+              "on-secondary": "#f3ffc4",
+              "on-primary-container": "#744638",
+              "surface": "#f9f9f7",
+              "primary-container": "#ffdbd0",
+              "tertiary-fixed-dim": "#ca9a6b",
+              "on-primary-fixed-variant": "#7f4f41",
+              "tertiary-container": "#d9a777",
+              "primary-fixed": "#ffdbd0",
+              "surface-container-low": "#f2f4f2",
+              "primary": "#835244",
+              "on-secondary-fixed-variant": "#55602e",
+              "background": "#f9f9f7",
+              "on-surface-variant": "#5a605e",
+              "secondary-fixed-dim": "#cddb9c",
+              "on-tertiary": "#fff7f4",
+              "on-primary": "#fff6f3",
+              "on-error-container": "#752121",
+              "surface-dim": "#d4dcd8",
+              "on-error": "#fff7f6",
+              "on-secondary-fixed": "#394414",
+              "surface-variant": "#dee4e0",
+              "outline": "#767c79",
+              "primary-fixed-dim": "#ffc8b8",
+              "secondary": "#586431"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+      }
+      input:focus {
+        outline: none;
+        box-shadow: none;
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopNavBar Suppression (Transactional Page) -->
+<main class="min-h-screen flex items-stretch">
+<!-- Left Side: Visual Narrative (Desktop Only) -->
+<div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-surface-container">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover" data-alt="Close-up of natural textures like woven bamboo, clay, or silk, soft focus, warm lighting, minimalist composition, perfect for a subtle website background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2RCSkPJCv85G2cNyH7WpwuiBiaoGxytZqQf_CTDBHWDBJKEvi6km-x3lXLZGNw-h94BpWVgpmhRVn_GEI3wl3fodymttw1TpC9gPy1kAVoTsO7IMXHiP6HabkELqpcPs7wtAV4oWULB5CW6_lPI-m0J52OuZwRti72yzp2x0AAC3MDwnTf0aswBvB_-c8R78_-MK2ULRrciyZnZF8LEtduVlugBiPWE7Fv_erWXH8M5R2STZP4qgSMhnxzgSBWM9ed6Nlz4nQIYv1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/60 to-transparent"></div>
+</div>
+<div class="relative z-10 p-16 flex flex-col justify-end h-full">
+<div class="mb-8">
+<span class="text-primary-fixed bg-primary/20 px-3 py-1 rounded-full text-xs font-label tracking-widest uppercase">The Digital Artisan</span>
+</div>
+<h2 class="font-headline text-5xl font-bold text-white tracking-tight leading-tight mb-6">
+                    Preserving the rhythm of the loom, one stitch at a time.
+                </h2>
+<p class="text-white/80 font-body text-lg max-w-md leading-relaxed">
+                    Join a global community dedicated to the authenticity of human craft and the stories woven into every masterpiece.
+                </p>
+</div>
+</div>
+<!-- Right Side: Registration Form -->
+<div class="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 lg:p-20 bg-surface">
+<div class="w-full max-w-md space-y-10">
+<!-- Brand Anchor & Header -->
+<header class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="brush">brush</span>
+<span class="font-headline font-extrabold text-xl tracking-tighter text-on-background">The Digital Artisan</span>
+</div>
+<div class="space-y-1">
+<h1 class="font-headline text-3xl font-bold text-on-surface">Join the Heritage</h1>
+<p class="text-on-surface-variant font-body">Connect with the soul of craft.</p>
+</div>
+</header>
+<!-- Registration Form -->
+<form class="space-y-8">
+<!-- Role Selector -->
+<div class="space-y-3">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-semibold">I am joining as</label>
+<div class="grid grid-cols-2 gap-4">
+<!-- Buyer Option -->
+<label class="relative group cursor-pointer">
+<input checked="" class="peer sr-only" name="role" type="radio" value="buyer"/>
+<div class="p-4 rounded-lg bg-surface-container-low border border-transparent peer-checked:bg-secondary-container peer-checked:border-secondary/20 transition-all duration-200">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="shopping_bag">shopping_bag</span>
+<span class="font-label text-sm font-medium">I am a Buyer</span>
+</div>
+</div>
+</label>
+<!-- Artisan Option -->
+<label class="relative group cursor-pointer">
+<input class="peer sr-only" name="role" type="radio" value="artisan"/>
+<div class="p-4 rounded-lg bg-surface-container-low border border-transparent peer-checked:bg-secondary-container peer-checked:border-secondary/20 transition-all duration-200">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="palette">palette</span>
+<span class="font-label text-sm font-medium">I am an Artisan</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Input Fields -->
+<div class="space-y-5">
+<!-- Full Name -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant" for="name">Full Name</label>
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all" id="name" placeholder="E.g. Elena Rossi" type="text"/>
+</div>
+<!-- Email -->
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant" for="email">Email Address</label>
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all" id="email" placeholder="elena@heritage.com" type="email"/>
+</div>
+<!-- Password Group -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant" for="password">Password</label>
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all" id="password" placeholder="••••••••" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="font-label text-xs uppercase tracking-widest text-on-surface-variant" for="confirm-password">Confirm Password</label>
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-on-surface-variant/50 focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all" id="confirm-password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+</div>
+<!-- Terms -->
+<div class="flex items-start gap-3">
+<div class="flex items-center h-5">
+<input class="w-4 h-4 rounded-sm border-outline-variant/30 text-primary focus:ring-primary/20" id="terms" type="checkbox"/>
+</div>
+<label class="text-xs text-on-surface-variant font-body leading-relaxed" for="terms">
+                            I agree to the <a class="text-primary hover:underline underline-offset-4 decoration-primary-container" href="#">Terms of Service</a> and <a class="text-primary hover:underline underline-offset-4 decoration-primary-container" href="#">Privacy Policy</a>. I understand my data will be used to personalize my heritage experience.
+                        </label>
+</div>
+<!-- Action -->
+<div class="pt-2">
+<button class="w-full bg-primary text-on-primary font-headline font-bold py-4 rounded-md hover:bg-primary-dim active:scale-[0.98] transition-all duration-200" type="submit">
+                            Create Account
+                        </button>
+<p class="text-center mt-6 text-sm text-on-surface-variant font-body">
+                            Already have an account? <a class="text-primary font-semibold hover:underline" href="#">Sign In</a>
+</p>
+</div>
+</form>
+<!-- Footer Support (Simplified for Transactional) -->
+<footer class="pt-10 border-t border-surface-container-high">
+<div class="flex justify-between items-center text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-label">
+<span>© 2024 THE DIGITAL ARTISAN</span>
+<div class="flex gap-4">
+<a class="hover:text-primary transition-colors" href="#">HELP</a>
+<a class="hover:text-primary transition-colors" href="#">CONTACT</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</main>
+</body></html>

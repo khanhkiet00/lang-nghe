@@ -56,7 +56,9 @@ export class ArtisansService {
   async getProfileBySlug(slug: string) {
     const profile = await this.prisma.artisanProfile.findUnique({
       where: { slug },
-      include: { user: { select: { id: true, email: true, reputationScore: true } } },
+      include: {
+        user: { select: { id: true, email: true, reputationScore: true } },
+      },
     });
     if (!profile) {
       throw new NotFoundException('Không tìm thấy artisan');

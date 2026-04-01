@@ -65,87 +65,78 @@ export default async function ArtisanProfilePage({ params }: { params: { slug: s
   }
 
   return (
-    <main className="min-h-screen bg-[#09090B] text-zinc-100">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm mb-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            {/* Avatar */}
-            <div className="flex-shrink-0">
+    <main className="relative min-h-screen overflow-hidden bg-[#09090B] text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_25%,rgba(99,102,241,0.08),transparent_42%),radial-gradient(circle_at_88%_10%,rgba(56,189,248,0.08),transparent_35%)]" />
+
+      <div className="relative mx-auto w-full max-w-5xl px-4 py-8 md:px-6 md:py-10">
+        <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center">
+            <div className="shrink-0">
               {profile.avatarUrl ? (
                 <Image
                   src={profile.avatarUrl}
                   alt={profile.fullName}
                   width={120}
                   height={120}
-                  className="rounded-full border-4 border-zinc-700"
+                  className="h-[120px] w-[120px] rounded-full border-2 border-zinc-700 object-cover"
                 />
               ) : (
-                <div className="w-30 h-30 bg-zinc-700 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-bold text-zinc-300">
-                    {profile.fullName.charAt(0).toUpperCase()}
-                  </span>
+                <div className="flex h-[120px] w-[120px] items-center justify-center rounded-full border-2 border-zinc-700 bg-zinc-800">
+                  <span className="text-2xl font-semibold text-zinc-300">{profile.fullName.charAt(0).toUpperCase()}</span>
                 </div>
               )}
             </div>
 
-            {/* Profile Info */}
             <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-2xl font-bold">{profile.fullName}</h1>
+              <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">Nghe Nhan Profile</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl font-semibold text-zinc-100 md:text-3xl">{profile.fullName}</h1>
                 {profile.isVerified && (
-                  <span className="bg-violet-600 text-white text-sm px-2 py-1 rounded-full">
-                    ✓ Đã xác thực
+                  <span className="rounded-full border border-violet-500/60 bg-violet-500/20 px-3 py-1 text-xs font-medium text-violet-300">
+                    Da xac thuc
                   </span>
                 )}
               </div>
 
-              {profile.expertise && (
-                <p className="text-violet-400 font-medium mb-2">{profile.expertise}</p>
-              )}
+              {profile.expertise && <p className="mt-2 text-base text-zinc-300">{profile.expertise}</p>}
 
+              <div className="mt-4 flex flex-wrap gap-2 text-sm text-zinc-400">
+                <span className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5">
+                  Diem uy tin: {profile.user.reputationScore}
+                </span>
+                <span className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5">
+                  Tham gia: {new Date(profile.createdAt).toLocaleDateString('vi-VN')}
+                </span>
+                {profile.location && (
+                  <span className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5">Khu vuc: {profile.location}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <article className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm md:col-span-2">
+            <h2 className="text-lg font-semibold text-zinc-100">Gioi thieu</h2>
+            <p className="mt-3 whitespace-pre-line leading-relaxed text-zinc-300">
+              {profile.description || 'Nghe nhan chua cap nhat phan gioi thieu.'}
+            </p>
+          </article>
+
+          <aside className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm">
+            <h2 className="text-lg font-semibold text-zinc-100">Lien he</h2>
+            <div className="mt-4 space-y-3 text-sm">
+              <p className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300">Email: {profile.user.email}</p>
               {profile.location && (
-                <p className="text-zinc-400 mb-4">📍 {profile.location}</p>
+                <p className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300">Dia diem: {profile.location}</p>
               )}
-
-              <div className="flex items-center gap-4 text-sm text-zinc-400">
-                <span>⭐ Điểm uy tín: {profile.user.reputationScore}</span>
-                <span>🛠️ Tham gia: {new Date(profile.createdAt).toLocaleDateString('vi-VN')}</span>
-              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Description Section */}
-        {profile.description && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm mb-8">
-            <h2 className="text-lg font-semibold mb-4">Giới thiệu</h2>
-            <p className="text-zinc-200 leading-relaxed">{profile.description}</p>
-          </div>
-        )}
-
-        {/* Contact Section */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Liên hệ</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="text-zinc-400">📧</span>
-              <span className="text-zinc-200">{profile.user.email}</span>
-            </div>
-            {profile.location && (
-              <div className="flex items-center gap-3">
-                <span className="text-zinc-400">📍</span>
-                <span className="text-zinc-200">{profile.location}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6">
-            <button className="bg-violet-600 hover:bg-violet-500 text-white rounded-md px-6 py-2 transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
-              Liên hệ với nghệ nhân
+            <button className="mt-5 w-full rounded-md bg-violet-600 px-4 py-2 font-medium text-white transition-all duration-200 ease-out hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+              Lien he voi nghe nhan
             </button>
-          </div>
-        </div>
+          </aside>
+        </section>
       </div>
     </main>
   );

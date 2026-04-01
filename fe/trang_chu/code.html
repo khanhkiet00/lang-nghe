@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#77d2f3",
+              "background": "#f9f9f9",
+              "primary": "#a6331b",
+              "surface-container-high": "#e8e8e8",
+              "surface-tint": "#aa361e",
+              "tertiary-fixed": "#b8eaff",
+              "primary-fixed": "#ffdad3",
+              "surface": "#f9f9f9",
+              "secondary-container": "#d4eca2",
+              "on-background": "#1a1c1c",
+              "outline": "#8c716b",
+              "on-tertiary-fixed-variant": "#004d61",
+              "tertiary": "#00647d",
+              "on-surface": "#1a1c1c",
+              "surface-bright": "#f9f9f9",
+              "inverse-surface": "#2f3131",
+              "inverse-on-surface": "#f0f1f1",
+              "surface-variant": "#e2e2e2",
+              "on-primary-fixed": "#3e0500",
+              "on-error-container": "#93000a",
+              "error-container": "#ffdad6",
+              "surface-dim": "#dadada",
+              "inverse-primary": "#ffb4a4",
+              "on-secondary-fixed-variant": "#3b4d14",
+              "primary-fixed-dim": "#ffb4a4",
+              "on-primary-container": "#fffbff",
+              "primary-container": "#c84b31",
+              "on-primary": "#ffffff",
+              "error": "#ba1a1a",
+              "secondary": "#52652a",
+              "on-surface-variant": "#58413c",
+              "on-primary-fixed-variant": "#891e07",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#eeeeee",
+              "on-error": "#ffffff",
+              "surface-container-highest": "#e2e2e2",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#d4eca2",
+              "surface-container-low": "#f3f3f3",
+              "outline-variant": "#e0bfb9",
+              "on-secondary-container": "#576b2f",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#fafdff",
+              "on-tertiary-fixed": "#001f28",
+              "on-secondary-fixed": "#141f00",
+              "tertiary-container": "#007f9d",
+              "secondary-fixed-dim": "#b8cf88"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f9f9f9;
+            color: #1a1c1c;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)]">
+<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="text-2xl font-extrabold text-[#c84b31] tracking-tighter">Heritage Hearth</div>
+<div class="hidden md:flex items-center gap-8 font-manrope body-lg:text-lg">
+<a class="text-[#c84b31] border-b-2 border-[#c84b31] pb-1" href="#">Feed</a>
+<a class="text-zinc-600 font-medium hover:text-[#a6331b] transition-colors duration-300" href="#">Artisans</a>
+<a class="text-zinc-600 font-medium hover:text-[#a6331b] transition-colors duration-300" href="#">Collections</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-zinc-600 hover:text-[#c84b31] transition-transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="text-zinc-600 hover:text-[#c84b31] transition-transform active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-12 max-w-7xl mx-auto px-6 md:px-8">
+<!-- Hero Story Section (Asymmetric) -->
+<section class="mb-24 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+<div class="md:col-span-7 relative">
+<div class="aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
+<img alt="Traditional Vietnamese pottery workshop" class="w-full h-full object-cover" data-alt="Close-up of artisan's hands molding wet clay on a pottery wheel in a sunlit rustic studio with warm terracotta dust in the air" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzDiGegmUs46GdpAk6ZjkmA5S4MebA-iVR-r7IzM5VExUp6tuIWO8yvX7sSCLAV4TSpyvdxqMpNlJjopYlORHR1b4miZxSjCvM9k_k-0_6sYpv6ZlDZFDdqU9jT7pOZl8lJx0tDnRs_bYOeMoVYEXRliPkPG7M2et_P-PLH7NhZoqqoHZIFlu4d_3Y0lSGzrHK9AuWhGHQmAzSl_3fTX1LmCGn1cvjNGVkUObbAUEUORHTRDJVqXdEizCV4buCW8N0f3jwI2O4paQG"/>
+</div>
+<div class="absolute -bottom-6 -right-6 md:right-12 bg-secondary-container text-on-secondary-container px-8 py-6 rounded-xl max-w-xs shadow-lg">
+<p class="font-label text-xs tracking-[0.05em] uppercase mb-2">Featured Origin</p>
+<p class="font-bold text-lg leading-tight">Bát Tràng Ceramic Village</p>
+<p class="text-sm mt-2 opacity-90 italic">"Seven centuries of heritage, shaped by one pair of hands."</p>
+</div>
+</div>
+<div class="md:col-span-5 flex flex-col gap-6">
+<h1 class="font-headline text-5xl md:text-6xl font-extrabold text-on-background tracking-tight leading-none">
+                    Crafting <span class="text-primary italic">Soul</span> into Stone.
+                </h1>
+<p class="text-zinc-600 body-lg leading-relaxed">
+                    Discover a curated feed of authentic craftsmanship. From the kilns of Bát Tràng to the lacquer studios of Hạ Thái, we bring Vietnam's finest hand-made treasures to your door.
+                </p>
+<div class="flex gap-4 pt-4">
+<button class="px-8 py-3 bg-primary-container text-white rounded-xl font-bold hover:opacity-90 transition-all">Explore Collections</button>
+<button class="px-8 py-3 text-primary font-bold hover:underline underline-offset-4 transition-all">Our Story</button>
+</div>
+</div>
+</section>
+<!-- Trending Products Bento Grid -->
+<section class="mb-24">
+<div class="flex justify-between items-end mb-12">
+<div>
+<span class="font-label text-xs tracking-[0.1em] text-secondary uppercase font-bold">The Gallery</span>
+<h2 class="text-4xl font-headline font-extrabold mt-2">Trending Creations</h2>
+</div>
+<button class="text-zinc-500 hover:text-primary flex items-center gap-2 group">
+                    View all 
+                    <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<!-- Product Card 1 (Large) -->
+<div class="md:col-span-2 md:row-span-2 group">
+<div class="h-full flex flex-col bg-surface-container-low rounded-xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300">
+<div class="relative flex-grow overflow-hidden">
+<img alt="Ceramic Vase" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Elegantly minimalist ceramic vase with an earthy terracotta glaze, set against a clean white textured background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxfl60pDajFEbRgqYYf31z6Sv4_1uBTYK2q7BYr8ZLziNo84r0_XBPJL7KO_IHG-2dIuTu11L1XmM7Svf1PwXZSRNcgkRmleN0eZxSpFFT05EUzSydvJeb-7xJozSAmz7OvknsEUTQd2jst6Stt6NGYqqR2BuVYG27OhYS8v8J8Y7bEnMy_v60ECOdybzFHkkXEuv5lzZlDXUNHJfQjFhRmhCKmQgrCf9Yb2ul84yaJdKNeIRMKWis3eqefOkjIxeMZPa_PwYerLhq"/>
+<div class="absolute top-4 left-4 bg-white/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold tracking-wider text-primary">BESTSELLER</div>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-2xl font-bold mb-1">Earth-Tone Rippled Vase</h3>
+<p class="text-zinc-500 italic">By Artisan Minh Duc</p>
+</div>
+<span class="text-xl font-extrabold text-primary">$124</span>
+</div>
+<button class="w-full py-4 bg-primary text-white rounded-xl font-bold flex justify-center items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_basket">shopping_basket</span>
+                                Add to Cart
+                            </button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group">
+<div class="bg-surface-container-low rounded-xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300 h-full flex flex-col">
+<div class="aspect-square overflow-hidden">
+<img alt="Lacquer bowl" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Deep crimson traditional lacquer bowl with gold leaf detailing inside, reflecting soft light on a dark wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8hLJNFuUffOBoeYwxSV9oChhlKcUOmdsCQU1Fav_TbR5ExKI9JSmyT7VPoQlgB5g_awE3j-EvHUNEBYdsxuX3WqiVf-QsVehD4hoI5KeSjOc1-V6zlNvQDmrr0cCfQePJWHOj50gq2TGBo3rbxbzWpGDVgFL672AzieRwFKgPzHo8xMFnFK6MMWagjGZZv85VGJWJPha2vPJ9mGuz6b1rnicfv7rtNJWlgAkRx8PxGFT6iXHIND8A8beRqd2d109gH3plJ18U65se"/>
+</div>
+<div class="p-6">
+<h3 class="font-bold text-lg leading-tight">Crimson Lacquer Set</h3>
+<p class="text-sm text-zinc-500 mb-4">Artisan Thu Huong</p>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">$89</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group">
+<div class="bg-surface-container-low rounded-xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300 h-full flex flex-col">
+<div class="aspect-square overflow-hidden">
+<img alt="Handwoven basket" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Intricately woven seagrass basket with organic patterns, set in a bright airy Scandinavian style room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGMczBzyT8kowvXDANg4pjlbdxghUV1IzuxGv30iprSar7ZcWXR-X6Qd4uDg6DkWbbx0JEUYQP4MT1va7-6f-Hs7dWsPnvg-l1cWJUOo1ji66DQpN4G6XBVdkwDuEtJuLfbKTJ1Q4OYgwpUD76izQNL_rsvfULgKFcGqyxEWPyURp7SOriHMyjcnKNGo-DAjynQ-xdnREWDbEggLCt9CYbi4f--vWNBMAQr9ST_G8dh2P3o1KP8v5dpre-3MxRbAMCJZDcRJBLkzha"/>
+</div>
+<div class="p-6">
+<h3 class="font-bold text-lg leading-tight">Handwoven Seagrass</h3>
+<p class="text-sm text-zinc-500 mb-4">Kim Son Collective</p>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">$45</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group">
+<div class="bg-surface-container-low rounded-xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300 h-full flex flex-col">
+<div class="aspect-square overflow-hidden">
+<img alt="Stone Carving" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Exquisite white marble hand-carved lotus flower sculpture with delicate petals, soft focus background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHEmpWR_9jgD5qNzAAOn7LuxHMF4b5dQ6TMwq4GUh35CRMhvWZ7C4OjhB_z6HD51lUF2kGsacR2Zgmju7pLDrNWRcsUbkVjbYIs37e_u9JrCFY5M09pRrTCDIrolocTKF3v_one2yDbEA7YUkwyk1SgZXSVDRPv6W3J0EEhzWf--aV6VRMOzRCGQ1EJgm9CwpEBJkqC_me_SI6y5wt_i75o-s0ykErekYdDk6Czgf191d9eF08AZvUbWUBSP5OR_bFs7T350c2S0Vg"/>
+</div>
+<div class="p-6">
+<h3 class="font-bold text-lg leading-tight">Marble Lotus Carving</h3>
+<p class="text-sm text-zinc-500 mb-4">Non Nuoc Village</p>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">$156</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="group">
+<div class="bg-surface-container-low rounded-xl overflow-hidden hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300 h-full flex flex-col">
+<div class="aspect-square overflow-hidden">
+<img alt="Silk scarf" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Luxurious hand-painted silk scarf with indigo lotus patterns, draped over a rustic wooden ladder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAnP6j2YZeiOa05v5V5kqvYdwJK98gDiHXPN95RvCsWAFxq04-xh0i5vBlSF7E2HQpOYtviFpHWfc0-jyohhM0AaBPDUleiImogeYuZ5xUZ_hr0rCUv16za-RLmIaA-oBkhJvTmzlZ7-qtGVp2wCTScQpUNwFlFn5URaDlNs1Q6wkNO3NtSIcJpFmRyGxqdritAs3ucJuHrqOfcocxSp71YdHAe0j-KkVEqi8Ug9-0Es8JlIDvRUDNmUpGZQa3_PAPkpzyAD5BwzAH"/>
+</div>
+<div class="p-6">
+<h3 class="font-bold text-lg leading-tight">Indigo Silk Scarf</h3>
+<p class="text-sm text-zinc-500 mb-4">Van Phuc Silk</p>
+<div class="flex justify-between items-center">
+<span class="text-lg font-bold text-primary">$72</span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center hover:bg-primary-container hover:text-white transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Artisan Stories (Editorial Style) -->
+<section class="mb-24 py-16 px-12 bg-zinc-950 text-white rounded-xl overflow-hidden relative">
+<div class="absolute inset-0 opacity-20 pointer-events-none">
+<img alt="Texture background" class="w-full h-full object-cover grayscale" data-alt="Macro photo of cracked earth texture and dry clay patterns, dark charcoal and deep brown tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqHvsGR2marwRGKsq9HMASaxvEFORA3LFUoNzDp8mKxONmCvVgK3I0lCp2sl5Ys0rasGDFUxBfPnht-d8LLCdebUdkJJXyYB2a6nbWjtMllS4qVyIG1iGX0RCtlg6YUjmG0OHzDXiFTcFFwi5SqlkpxASkejfnducXb6WNeamdE_51vlrvhX2FBm4722pUPynRptV2eJRQgdh2gh49XuzVwbKGLe28F_bUkzeY2QYlPcFR5HmuJaN4PVtnb8J5klGHuvTGU5yWfl1u"/>
+</div>
+<div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<span class="font-label text-xs tracking-[0.2em] text-secondary uppercase font-bold">The Human Element</span>
+<h2 class="text-5xl font-headline font-extrabold mt-4 mb-8">Stories of the Kiln</h2>
+<div class="space-y-6">
+<div class="border-l-2 border-primary pl-6 py-2">
+<p class="text-xl font-medium leading-relaxed italic">"My grandfather taught me that the clay has a heartbeat. You don't just shape it; you listen to it."</p>
+<p class="mt-4 font-bold text-primary">— Master Tran, 4th Generation Potter</p>
+</div>
+<p class="text-zinc-400 leading-relaxed">
+                            Every piece on our platform carries the weight of history and the pulse of contemporary life. We travel to remote villages to find the artisans who refuse to let tradition fade.
+                        </p>
+<button class="mt-4 px-8 py-3 bg-white text-zinc-950 rounded-xl font-bold hover:bg-primary hover:text-white transition-all">Read Their Stories</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="aspect-[3/4] rounded-xl overflow-hidden">
+<img alt="Artisan portrait" class="w-full h-full object-cover" data-alt="Portrait of an elderly Vietnamese artisan with wise eyes and weathered hands, wearing traditional indigo clothing in a workshop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB49taw4QUQb7SnrenP9UeCHCjKuCI6ax_z0V1B5UufJmArKBm8lNOucmhH-cXOCihdvZpmYwE_SYZALoC6E2NLiV852EHXcm0JUeSnc9UsaPy3VcryXebVYUUdu58ZXF2-oVfU02VRWU01ZkoeydAwUYyALfujOi2PQDrpz3xlhE4xe17lfmXFtxZKT8JnnVuuxNjXXo1uWeWDhf62jt16p8vhoINxez1z-EsO8Upz916vZIGP3wt9JvweS7ZbjviQ6amd8nVUCeEA"/>
+</div>
+<div class="aspect-[3/4] rounded-xl overflow-hidden mt-8">
+<img alt="Detail work" class="w-full h-full object-cover" data-alt="Close-up detail of a fine brush painting intricate gold patterns on a black lacquer plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ0Qg85yZ7MSReFx79mX9jiVM-jPiRmu2JP98zqPQ1-koMbEKi97DrVVTDsnnwuwJjYQYNE0Xobyt8BBv4rTEqi0rLHwkvwRJwUJKyjUh95CDlDy8aPW6zcvHlU3KqaLjBJu3sGVTaM0G6i0uEwWUGTMsDzIEQIyrVSuk6ivJKMeES3BJQAM6chGD-2hjtLFknwBMv33CQHMZ6oCHOqvheBPEt_RFBea8J2hAQNyBanfD_b4kaGSQAYejyX5X8jBvLifh9F6Hm3Vtg"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Artisan Updates Feed -->
+<section class="mb-24">
+<div class="flex items-center gap-4 mb-12">
+<h2 class="text-4xl font-headline font-extrabold">Artisan Updates</h2>
+<div class="h-[1px] flex-grow bg-outline-variant opacity-30"></div>
+</div>
+<div class="flex flex-col gap-8">
+<!-- Update 1 -->
+<div class="flex flex-col md:flex-row gap-8 p-8 bg-surface-container-lowest rounded-xl hover:shadow-md transition-shadow">
+<div class="w-20 h-20 rounded-full overflow-hidden shrink-0 border-2 border-primary-container">
+<img alt="Artisan avatar" class="w-full h-full object-cover" data-alt="Headshot of a middle-aged artisan smiling warmly, workshop background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZQ8PKbYdNhgg28chPKCmdzzYZx0JLjv4KpTw3WcdM4RcUHeNb6RA625oHhJGpy9XvFZiz-iZCzlZA6t2PFC1fpNPHHzXFr4sj6SQ9HeV2capzvv7aWfpTHFWDQKFCaHqtRqz-D_hNUtmZBCHjxL9AzSltsWOgsB7DbXgK7608pVuTXiPafFF_TFVYMyHuoupaLiQgcnIvIyxQMKsIi2lscIKkm0FnBGMszqCDP0WYaflOr5CtzTrz5JlSzwrfnV1-KHB3QcQgvTn2"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-lg">Le Van Hien</h4>
+<p class="text-xs text-secondary font-bold uppercase tracking-wider">Hạ Thái Lacquer Village</p>
+</div>
+<span class="text-sm text-zinc-400">2 hours ago</span>
+</div>
+<p class="text-zinc-600 mb-6 leading-relaxed">
+                            Just finished the final polishing on the 'Midnight Moon' collection. This batch took nearly 4 months of layering and sanding. Can't wait for you all to see the depth of these colors.
+                        </p>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<img alt="Work in progress" class="aspect-square w-full rounded-lg object-cover" data-alt="Multiple lacquer bowls in various stages of drying, stacked neatly in a dimly lit studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNvbX0IXeFm_2RFXzxo-CiKdbAPurTto8GzIipl0msFr9BPTnOw1enP3p0PiVzl_JKIheA-62ClSt-jpwn4SeX5scTJz8F7Bezgs2QWvc722FJ4AKxyRn7uE1kO5iT1ZROGzgH4B3cPCaUPE_ywM_KwFC28XUE9SMQDg6sEgIJFG0UF5n1mDEzY5ZawdibDENrAVTJZumB0XekS86gwApIGUB5P7e6UuNKy7Fm2OPoeSGQuc8RUX7kz6VE_uk8Q7ewpGkACK3b1SBM"/>
+<img alt="Texture detail" class="aspect-square w-full rounded-lg object-cover" data-alt="Extreme close up of a polished lacquer surface reflecting a window light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzSD7FpNV4wOmJPGmJT80Tv7EeWBLjfddtVCD0wRHC88MSRX4F_97o0-swHsjhOUtiOLIpSc6refjASz_IMXA38u5tld7gZOVClyei8RKj2uxckLMXliMz5sXHcV-rs-ru_S0-3hLBkql296dop3XUr7Q_Hcj8hWc9UfbXKVQis7qebHwoKXmeZnFN8mATG1-IHroCDWmaW1x_cAMtQw36oaroB_fngSbRIUowRO2EGtK5twzWcR4wNcofe6nMAzit1w8C4ex74E3x"/>
+</div>
+</div>
+</div>
+<!-- Update 2 -->
+<div class="flex flex-col md:flex-row gap-8 p-8 bg-surface-container-lowest rounded-xl hover:shadow-md transition-shadow">
+<div class="w-20 h-20 rounded-full overflow-hidden shrink-0 border-2 border-primary-container">
+<img alt="Artisan avatar" class="w-full h-full object-cover" data-alt="Portrait of a young female craftswoman in a textile studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFFD-JIf6-mpYafQnxRfIY13aFMd2Ioa4Utj8gsOq5TxG-9R1LNEZn9QVEBjRQng389NsJseJty2tThW8u_pqdC_MM7LmU64xO2QqxzkdPJcLVvBsqLEJbW3FFZnm5CFrsAdTUBw_lSjtsoJ-qkN27lSfRzHVpYe20Id-Zmon-guvqikZFyyRHj_BDoSOzvkuDnba9qssEGylPVdeL07OM5lT0zFcmGMcQQ59pT3YY5WMn4Bh5AqGeR6sq6zzjefudhlYKOW0TgqIN"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-lg">Mai Anh</h4>
+<p class="text-xs text-secondary font-bold uppercase tracking-wider">Sapa Indigo Collective</p>
+</div>
+<span class="text-sm text-zinc-400">Yesterday</span>
+</div>
+<p class="text-zinc-600 mb-6 leading-relaxed">
+                            The new indigo harvest is ready! We've started the fermentation process today. The blue this year is exceptionally deep. Stay tuned for new textiles next month.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full rounded-t-[1.5rem] mt-12 bg-zinc-50">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 py-16 max-w-7xl mx-auto gap-8">
+<div class="flex flex-col gap-4 text-center md:text-left">
+<div class="text-lg font-bold text-[#c84b31]">Heritage Hearth</div>
+<p class="font-manrope text-sm tracking-wide text-zinc-500 max-w-xs">Connecting the world to the master artisans of Vietnam’s ancient villages.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-manrope text-sm tracking-wide text-zinc-500 hover:text-[#c84b31] transition-all duration-300" href="#">About</a>
+<a class="font-manrope text-sm tracking-wide text-zinc-500 hover:text-[#c84b31] transition-all duration-300" href="#">Terms</a>
+<a class="font-manrope text-sm tracking-wide text-zinc-500 hover:text-[#c84b31] transition-all duration-300" href="#">Contact</a>
+<a class="font-manrope text-sm tracking-wide text-zinc-500 hover:text-[#c84b31] transition-all duration-300" href="#">Newsletter</a>
+</div>
+<div class="flex flex-col items-center md:items-end gap-4">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-zinc-400 cursor-pointer hover:text-primary transition-colors" data-icon="public">public</span>
+<span class="material-symbols-outlined text-zinc-400 cursor-pointer hover:text-primary transition-colors" data-icon="share">share</span>
+</div>
+<p class="font-manrope text-sm tracking-wide text-zinc-500">© 2024 Làng Nghề Platform. Crafted with soul.</p>
+</div>
+</div>
+</footer>
+</body></html>

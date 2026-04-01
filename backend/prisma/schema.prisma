@@ -13,6 +13,7 @@ model User {
   email         String           @unique
   phone         String?          @unique
   password      String
+  isEmailVerified Boolean        @default(false)
   roles         UserRole[]
   otps          Otp[]
   refreshTokens RefreshToken[]

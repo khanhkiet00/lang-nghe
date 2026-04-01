@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login | The Digital Artisan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-container": "#482904",
+                        "inverse-primary": "#fdbdab",
+                        "surface-container-lowest": "#ffffff",
+                        "error-dim": "#4e0309",
+                        "primary-dim": "#754638",
+                        "surface-bright": "#f9f9f7",
+                        "on-tertiary-fixed": "#271300",
+                        "on-background": "#2e3432",
+                        "error": "#9f403d",
+                        "on-tertiary-fixed-variant": "#53320b",
+                        "on-secondary-container": "#4b5625",
+                        "surface-container": "#ecefec",
+                        "error-container": "#fe8983",
+                        "surface-tint": "#835244",
+                        "secondary-fixed": "#dbe9a9",
+                        "tertiary-fixed": "#d9a777",
+                        "tertiary-dim": "#704b23",
+                        "surface-container-high": "#e5e9e6",
+                        "on-primary-fixed": "#5e3427",
+                        "inverse-on-surface": "#9c9d9b",
+                        "outline-variant": "#adb3b0",
+                        "inverse-surface": "#0d0f0e",
+                        "secondary-dim": "#4c5826",
+                        "surface-container-highest": "#dee4e0",
+                        "secondary-container": "#dbe9a9",
+                        "on-surface": "#2e3432",
+                        "tertiary": "#7e572e",
+                        "on-secondary": "#f3ffc4",
+                        "on-primary-container": "#744638",
+                        "surface": "#f9f9f7",
+                        "primary-container": "#ffdbd0",
+                        "tertiary-fixed-dim": "#ca9a6b",
+                        "on-primary-fixed-variant": "#7f4f41",
+                        "tertiary-container": "#d9a777",
+                        "primary-fixed": "#ffdbd0",
+                        "surface-container-low": "#f2f4f2",
+                        "primary": "#835244",
+                        "on-secondary-fixed-variant": "#55602e",
+                        "background": "#f9f9f7",
+                        "on-surface-variant": "#5a605e",
+                        "secondary-fixed-dim": "#cddb9c",
+                        "on-tertiary": "#fff7f4",
+                        "on-primary": "#fff6f3",
+                        "on-error-container": "#752121",
+                        "surface-dim": "#d4dcd8",
+                        "on-error": "#fff7f6",
+                        "on-secondary-fixed": "#394414",
+                        "surface-variant": "#dee4e0",
+                        "outline": "#767c79",
+                        "primary-fixed-dim": "#ffc8b8",
+                        "secondary": "#586431"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    vertical-align: middle
+    }
+.text-ink {
+    color: #2e3432
+    }
+.bg-textured {
+    background-image: linear-gradient(rgba(249, 249, 247, 0.6), rgba(249, 249, 247, 0.6)), url(https://lh3.googleusercontent.com/aida-public/AB6AXuCOSZyhlHd-Pg0MRP6TPkXqL_rMsrt50xf8ZOF5eibbuYsIf3fCfFZEQqciyjiB95XJTCdfWdqzxyrQFI9FpiAQpxsQZETbmRLgks09nNq4eFjG5ekwACi4LAIqhn5unphM0rvPy-dhxDJdQYFutczyXbUZbNH-DOcThVLrAvUJ18IxUJAMoUdjZEBBSrIPWbVYV2YXtY30SMsTQ5Xy2s4NJQxnNmTKTjNgcFat8VJPXRS52JJY6qRj4MFqXV9-mTiS_AXmspg6vxjF);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed
+    }</style>
+</head>
+<body class="bg-textured font-body text-on-surface antialiased">
+<!-- Navigation Suppressed for Login Journey as per "The Destination Rule" -->
+<main class="min-h-screen flex items-center justify-center p-6 sm:p-12">
+<div class="w-full max-w-md relative">
+<!-- Branding Header -->
+<div class="mb-12 text-center">
+<span class="font-headline text-xl font-bold tracking-tight text-primary uppercase tracking-[0.2em] block mb-4">The Digital Artisan</span>
+<h1 class="font-headline text-4xl font-extrabold text-on-surface tracking-tight mb-2">Welcome Back</h1>
+<p class="text-on-surface-variant font-body text-sm">Continue your artisan journey.</p>
+</div>
+<!-- Login Card -->
+<div class="bg-surface-container-lowest rounded-xl p-8 sm:p-10 shadow-[0_20px_40px_rgba(46,52,50,0.06)] ring-1 ring-on-surface/5">
+<form action="#" class="space-y-6" method="POST">
+<!-- Email Field -->
+<div class="space-y-2">
+<label class="block text-xs font-semibold uppercase tracking-widest text-on-surface-variant px-1" for="email">Email Address</label>
+<div class="relative group">
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all duration-200 text-sm outline-none" id="email" name="email" placeholder="name@artisan.com" required="" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<div class="flex justify-between items-center px-1">
+<label class="block text-xs font-semibold uppercase tracking-widest text-on-surface-variant" for="password">Password</label>
+<a class="text-[10px] uppercase font-bold tracking-widest text-primary hover:text-primary-dim transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative group">
+<input class="w-full bg-surface-container-highest/40 border-none rounded-sm px-4 py-3 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary focus:bg-surface-container-lowest transition-all duration-200 text-sm outline-none" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary hover:bg-primary-dim text-on-primary font-headline font-bold py-4 rounded-md transition-all duration-300 active:scale-[0.98] mt-4 shadow-sm" type="submit">
+                        Enter Workshop
+                    </button>
+</form>
+<!-- Divider -->
+<div class="relative my-8">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-surface-container-high"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase tracking-[0.2em]">
+<span class="bg-surface-container-lowest px-4 text-on-surface-variant font-medium">Or Connect Via</span>
+</div>
+</div>
+<!-- Social Logins -->
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant font-label text-xs font-bold py-3 px-4 rounded-md transition-colors border border-on-surface/5">
+<span class="material-symbols-outlined text-[18px]">google</span>
+<span>GOOGLE</span>
+</button>
+<button class="flex items-center justify-center gap-3 bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant font-label text-xs font-bold py-3 px-4 rounded-md transition-colors border border-on-surface/5">
+<span class="material-symbols-outlined text-[18px]">ios</span>
+<span>APPLE</span>
+</button>
+</div>
+</div>
+<!-- Create Account Footer -->
+<p class="mt-8 text-center text-sm text-on-surface-variant">
+                New to the heritage? 
+                <a class="text-primary font-bold hover:underline decoration-primary-container decoration-2 underline-offset-4 transition-all" href="#">Create Account</a>
+</p>
+</div>
+</main>
+<!-- Content-Focused Footer -->
+<footer class="w-full py-8 bg-[#f2f4f2] dark:bg-stone-900 flex flex-col items-center gap-4">
+<div class="flex gap-6">
+<a class="font-['Inter'] text-[10px] uppercase tracking-widest text-[#2e3432]/50 hover:text-[#8D5B4C] transition-colors" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-[10px] uppercase tracking-widest text-[#2e3432]/50 hover:text-[#8D5B4C] transition-colors" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-[10px] uppercase tracking-widest text-[#2e3432]/50 hover:text-[#8D5B4C] transition-colors" href="#">Contact Support</a>
+</div>
+<p class="font-['Inter'] text-[10px] uppercase tracking-widest text-[#2e3432]/50 opacity-80">
+            © 2024 The Digital Artisan. Preserving Heritage.
+        </p>
+</footer>
+</body></html>
