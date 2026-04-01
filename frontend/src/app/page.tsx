@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -126,9 +127,10 @@ export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [allProducts, setAllProducts] = useState<ProductItem[]>(mockProducts);
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [productError, setProductError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategorySlug, setActiveCategorySlug] = useState('all');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -142,7 +144,6 @@ export default function Home() {
 
     async function loadProducts() {
       setLoadingProducts(true);
-      setProductError('');
 
       try {
         const response = await fetch(`${API_BASE}/products?page=1&limit=24`, {
@@ -162,12 +163,10 @@ export default function Home() {
           setAllProducts(items);
         } else {
           setAllProducts(mockProducts);
-          setProductError('API chưa có sản phẩm, đang hiển thị dữ liệu mẫu.');
         }
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           setAllProducts(mockProducts);
-          setProductError('Không kết nối được API, đang hiển thị dữ liệu mẫu.');
         }
       } finally {
         setLoadingProducts(false);
@@ -178,6 +177,31 @@ export default function Home() {
 
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('langnghe_access_token');
+    setIsLoggedIn(Boolean(token));
+  }, []);
+
+  async function handleLogout() {
+    const token = localStorage.getItem('langnghe_access_token');
+    try {
+      if (token) {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    } catch {
+      // Keep client logout even if server call fails.
+    } finally {
+      localStorage.removeItem('langnghe_access_token');
+      setIsLoggedIn(false);
+      setAuthMenuOpen(false);
+    }
+  }
 
   const categories = Array.from(
     new Map(
@@ -199,44 +223,102 @@ export default function Home() {
 
   return (
     <div className="bg-[#F9F9F7] text-[#1A1C1C]">
-      <nav className="fixed top-0 z-50 w-full border-b border-black/5 bg-white/75 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 md:px-8">
-          <div className="shrink-0 text-2xl font-extrabold tracking-tight text-[#C84B31]">
+      <nav className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-4">
+          <div className="shrink-0 text-2xl font-extrabold tracking-tighter text-[#C84B31]">
             Làng Nghề
           </div>
 
-          <div className="hidden flex-1 px-10 md:block">
-            <div className="mx-auto max-w-md rounded-full bg-[#F2F4F2] px-4 py-2.5">
+          <div className="mx-12 hidden max-w-md flex-1 md:flex">
+            <div className="group relative w-full">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#C84B31]">
+                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              </span>
               <input
                 type="text"
                 placeholder="Tìm kiếm tinh hoa làng nghề..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full bg-transparent text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
+                className="w-full rounded-full border-none bg-[#F2F4F2] py-2.5 pl-12 pr-4 text-sm text-zinc-700 outline-none transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[#C84B31]/20"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="hidden items-center gap-7 lg:flex">
-              <a className="font-bold text-[#C84B31]" href="#">
+          <div className="flex items-center gap-6">
+            <div className="mr-4 hidden items-center gap-8 lg:flex">
+              <a className="font-bold text-[#C84B31]" href="/">
                 Trang chủ
               </a>
-              <a className="font-medium text-zinc-600 hover:text-[#C84B31]" href="#">
+              <a className="font-medium text-zinc-600 transition-colors hover:text-[#C84B31]" href="#">
                 Nghệ nhân
               </a>
             </div>
-            <button className="relative text-zinc-600 hover:text-[#C84B31]">
-              <span>Giỏ hàng</span>
-              <span className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#C84B31] text-[10px] font-bold text-white">
+
+            <button className="group relative text-zinc-600 hover:text-[#C84B31]">
+              <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="2">
+                <path d="M3 4h2l2.5 11h10L21 7H8" />
+                <circle cx="10" cy="19" r="1.5" />
+                <circle cx="18" cy="19" r="1.5" />
+              </svg>
+              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#C84B31] text-[10px] font-bold text-white">
                 2
               </span>
             </button>
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5LVvXgxx-E-_57gSL5yTTHo_76HhRKKKX0zvbt3BVTPVJ1MjIAA9uFcNBjB-jgeuX4jDcr8IPeK6Cnu-_xv26QGMYOEP6BC0FLFYTRNLGxMe6gQqdh3sMjLdOooevoZNZR6A6i-z4EAapm6gP-9bb8sLyLsebdzA9jFH7Pmsya64g91i6l-Qj1dQ-9K925hZ6yMeqQKhdobUcUtJUpbaLz4Z_eheMnOsw-FxAVh1c5RbGBFFrxa9cH3LeKO3ap-ovGyJdQTW6rL5"
-              alt="Hồ sơ"
-              className="h-10 w-10 rounded-full border-2 border-[#C84B31]/15 object-cover"
-            />
+
+            {!isLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/auth?mode=login"
+                  className="rounded-full border border-[#C84B31]/30 px-4 py-2 text-sm font-semibold text-[#C84B31] transition-all hover:border-[#C84B31]"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  href="/auth?mode=register"
+                  className="rounded-full bg-[#C84B31] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            ) : (
+              <div className="group relative">
+                <button
+                  onClick={() => setAuthMenuOpen((prev) => !prev)}
+                  className="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-[#C84B31]/10 transition-all hover:border-[#C84B31]"
+                >
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5LVvXgxx-E-_57gSL5yTTHo_76HhRKKKX0zvbt3BVTPVJ1MjIAA9uFcNBjB-jgeuX4jDcr8IPeK6Cnu-_xv26QGMYOEP6BC0FLFYTRNLGxMe6gQqdh3sMjLdOooevoZNZR6A6i-z4EAapm6gP-9bb8sLyLsebdzA9jFH7Pmsya64g91i6l-Qj1dQ-9K925hZ6yMeqQKhdobUcUtJUpbaLz4Z_eheMnOsw-FxAVh1c5RbGBFFrxa9cH3LeKO3ap-ovGyJdQTW6rL5"
+                    alt="Hồ sơ"
+                    className="h-full w-full object-cover"
+                  />
+                </button>
+
+                <div
+                  className={`absolute right-0 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-black/5 bg-white p-2 shadow-xl transition-all ${
+                    authMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+                  }`}
+                >
+                  <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+                    Tài khoản
+                  </p>
+                  <Link href="/dashboard/nghe-nhan" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
+                    Quản lý xưởng
+                  </Link>
+                  <Link href="/auth" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
+                    Cập nhật đăng nhập
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="rounded-lg px-3 py-2 text-left text-sm font-semibold text-[#C84B31] hover:bg-[#F2F4F2]"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -300,6 +382,80 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="mb-32">
+          <div className="mb-12 flex items-end justify-between">
+            <div>
+              <h2 className="text-4xl font-extrabold">Tạo Tác Xu Hướng</h2>
+              <p className="mt-2 italic text-zinc-400">
+                Kết tinh từ tâm huyết của các bậc thầy lành nghề.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div className="group relative md:col-span-2 md:row-span-2">
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:shadow-2xl">
+                <div className="relative aspect-[4/5] flex-grow overflow-hidden md:aspect-auto">
+                  <img
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxfl60pDajFEbRgqYYf31z6Sv4_1uBTYK2q7BYr8ZLziNo84r0_XBPJL7KO_IHG-2dIuTu11L1XmM7Svf1PwXZSRNcgkRmleN0eZxSpFFT05EUzSydvJeb-7xJozSAmz7OvknsEUTQd2jst6Stt6NGYqqR2BuVYG27OhYS8v8J8Y7bEnMy_v60ECOdybzFHkkXEuv5lzZlDXUNHJfQjFhRmhCKmQgrCf9Yb2ul84yaJdKNeIRMKWis3eqefOkjIxeMZPa_PwYerLhq"
+                    alt="Bình Gốm"
+                  />
+                  <div className="absolute left-6 top-6 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#C84B31] shadow-sm backdrop-blur-md">
+                    BÁN CHẠY NHẤT
+                  </div>
+                </div>
+                <div className="bg-white p-10">
+                  <div className="mb-3 flex items-center gap-1">
+                    <span className="text-amber-500">★★★★★</span>
+                    <span className="ml-2 text-xs text-zinc-400">(128 đánh giá)</span>
+                  </div>
+                  <h3 className="mb-2 text-3xl font-bold">Bình Gốm Men Đất Rippled</h3>
+                  <p className="mb-6 italic text-zinc-500">Nghệ nhân Minh Đức • Làng Gốm Bát Tràng</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-extrabold text-[#C84B31]">2.850.000đ</span>
+                    <button className="rounded-xl bg-[#C84B31] px-8 py-3 font-bold text-white transition-colors hover:bg-[#9f3d28]">
+                      Thêm vào giỏ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {[
+              {
+                title: 'Bộ Bát Sơn Mài Crimson',
+                price: '1.250.000đ',
+                image:
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuB8hLJNFuUffOBoeYwxSV9oChhlKcUOmdsCQU1Fav_TbR5ExKI9JSmyT7VPoQlgB5g_awE3j-EvHUNEBYdsxuX3WqiVf-QsVehD4hoI5KeSjOc1-V6zlNvQDmrr0cCfQePJWHOj50gq2TGBo3rbxbzWpGDVgFL672AzieRwFKgPzHo8xMFnFK6MMWagjGZZv85VGJWJPha2vPJ9mGuz6b1rnicfv7rtNJWlgAkRx8PxGFT6iXHIND8A8beRqd2d109gH3plJ18U65se',
+              },
+              {
+                title: 'Giỏ Mây Đan Tự Nhiên',
+                price: '450.000đ',
+                image:
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuAGMczBzyT8kowvXDANg4pjlbdxghUV1IzuxGv30iprSar7ZcWXR-X6Qd4uDg6DkWbbx0JEUYQP4MT1va7-6f-Hs7dWsPnvg-l1cWJUOo1ji66DQpN4G6XBVdkwDuEtJuLfbKTJ1Q4OYgwpUD76izQNL_rsvfULgKFcGqyxEWPyURp7SOriHMyjcnKNGo-DAjynQ-xdnREWDbEggLCt9CYbi4f--vWNBMAQr9ST_G8dh2P3o1KP8v5dpre-3MxRbAMCJZDcRJBLkzha',
+              },
+              
+            ].map((item, index) => (
+              <div key={`${item.title}-${index}`} className="group rounded-2xl bg-white p-4 shadow-sm transition-all duration-500 hover:shadow-2xl">
+                <div className="aspect-square overflow-hidden rounded-xl bg-[#F2F4F2]">
+                  <img className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src={item.image} alt={item.title} />
+                </div>
+                <div className="pb-2 pt-5">
+                  <div className="mb-2 flex items-center gap-0.5 text-xs text-amber-500">★★★★☆</div>
+                  <h4 className="text-lg font-bold">{item.title}</h4>
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-xl font-extrabold text-[#C84B31]">{item.price}</p>
+                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1A1C1C] text-white hover:bg-[#C84B31] transition-colors">
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="mb-16 sticky top-[72px] z-40">
           <div className="hide-scrollbar overflow-x-auto rounded-full bg-[#F2F4F2] px-8 py-4 shadow-sm">
             <div className="flex items-center gap-8 whitespace-nowrap text-sm font-medium">
@@ -338,13 +494,7 @@ export default function Home() {
             <p className="mt-6 text-zinc-500">Đang tải dữ liệu sản phẩm...</p>
           )}
 
-          {productError && (
-            <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              {productError}
-            </p>
-          )}
-
-          {!loadingProducts && !productError && visibleProducts.length === 0 && (
+          {!loadingProducts && visibleProducts.length === 0 && (
             <p className="mt-6 text-zinc-500">
               Không có sản phẩm phù hợp với bộ lọc hiện tại.
             </p>
@@ -386,6 +536,21 @@ export default function Home() {
                 </div>
               </article>
             ))}
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <button className="group flex items-center gap-2 rounded-full border-2 border-[#C84B31]/20 px-12 py-4 font-bold text-[#C84B31] transition-all duration-300 hover:bg-[#C84B31] hover:text-white">
+              <span>Xem Thêm Tinh Hoa</span>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-4 w-4 transition-transform group-hover:translate-y-1"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
           </div>
         </section>
       </main>

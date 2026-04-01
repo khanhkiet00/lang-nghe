@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMemo, useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type AuthMode = 'login' | 'register' | 'verify';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-export default function AuthPage() {
+function AuthPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -19,6 +20,13 @@ export default function AuthPage() {
   const [joinAs, setJoinAs] = useState<'buyer' | 'artisan'>('buyer');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const modeParam = searchParams.get('mode') as AuthMode;
+    if (modeParam && ['login', 'register', 'verify'].includes(modeParam)) {
+      setMode(modeParam);
+    }
+  }, [searchParams]);
 
   const loginBg =
     'https://lh3.googleusercontent.com/aida-public/AB6AXuCOSZyhlHd-Pg0MRP6TPkXqL_rMsrt50xf8ZOF5eibbuYsIf3fCfFZEQqciyjiB95XJTCdfWdqzxyrQFI9FpiAQpxsQZETbmRLgks09nNq4eFjG5ekwACi4LAIqhn5unphM0rvPy-dhxDJdQYFutczyXbUZbNH-DOcThVLrAvUJ18IxUJAMoUdjZEBBSrIPWbVYV2YXtY30SMsTQ5Xy2s4NJQxnNmTKTjNgcFat8VJPXRS52JJY6qRj4MFqXV9-mTiS_AXmspg6vxjF';
@@ -109,8 +117,8 @@ export default function AuthPage() {
         localStorage.setItem('langnghe_access_token', data.accessToken);
       }
 
-      setMessage('Đăng nhập thành công. Đang chuyển đến bảng điều khiển...');
-      router.push('/dashboard/nghe-nhan');
+      setMessage('Đăng nhập thành công. Đang chuyển về trang chủ...');
+      router.push('/');
     } catch {
       setMessage('Không thể đăng nhập. Vui lòng thử lại.');
     } finally {
@@ -170,6 +178,83 @@ export default function AuthPage() {
       const focusInput = document.getElementById(`otp-${focusIndex}`);
       if (focusInput) focusInput.focus();
     }
+  }
+
+  if (mode === 'login') {
+    return (
+      <main className="min-h-screen bg-[#f9f9f7] text-[#2e3432] lg:flex">
+        <section className="w-full lg:w-1/2 bg-gradient-to-br from-[#f9f9f7] via-[#f2f4f2] to-[#e8ebe8] px-6 py-10 md:px-12 lg:px-16 flex items-center justify-center">
+          <div className="w-full max-w-md">
+            <div className="mb-12">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#835244]">Nền Tảng Làng Nghề</p>
+              <h1 className="mt-4 text-6xl font-bold tracking-[-0.02em] leading-none">Đăng Nhập</h1>
+              <p className="mt-4 text-lg text-[#5a605e]">Quay trở lại với những tác phẩm tuyệt vời của bạn.</p>
+            </div>
+
+            <form onSubmit={onSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-xs uppercase tracking-[0.22em] text-[#5a605e]">Địa chỉ Email</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@artisan.com"
+                  className="w-full rounded-sm bg-[#dee4e066] px-4 py-3 outline-none transition-all duration-200 focus-visible:bg-white focus-visible:shadow-[inset_0_0_0_1px_#83524433]"
+                  type="email"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <label className="text-xs uppercase tracking-[0.22em] text-[#5a605e]">Mật khẩu</label>
+                  <button type="button" className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#835244] cursor-pointer hover:underline">
+                    Quên mật khẩu?
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="********"
+                    className="w-full rounded-sm bg-[#dee4e066] px-4 py-3 pr-12 outline-none transition-all duration-200 focus-visible:bg-white focus-visible:shadow-[inset_0_0_0_1px_#83524433]"
+                    type={showPassword ? "text" : "password"}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a605e] hover:text-[#835244] transition-colors"
+                  >
+                    {showPassword ? '🙈' : '👁️'}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-md bg-[#835244] px-5 py-4 text-base font-semibold text-white transition-all duration-200 hover:bg-[#754638] disabled:opacity-70"
+              >
+                {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+              </button>
+            </form>
+
+            {message && <p className="mt-4 rounded-md bg-[#f2f4f2] px-4 py-3 text-sm text-[#5a605e]">{message}</p>}
+
+            <p className="mt-8 text-center text-sm text-[#5a605e]">
+              Chưa có tài khoản?{' '}
+              <button type="button" onClick={() => setMode('register')} className="font-semibold text-[#835244] hover:underline">
+                Tạo tài khoản
+              </button>
+            </p>
+          </div>
+        </section>
+
+        <section className="hidden lg:flex w-1/2 bg-cover bg-center relative" style={{ backgroundImage: `url(${loginBg})` }}>
+          <div className="absolute inset-0 bg-black/20" />
+        </section>
+      </main>
+    );
   }
 
   if (mode === 'register') {
@@ -340,117 +425,12 @@ export default function AuthPage() {
       </main>
     );
   }
+}
 
+export default function AuthPage() {
   return (
-    <main
-      className="min-h-screen bg-[#f9f9f7] text-[#2e3432]"
-      style={{
-        backgroundImage: `linear-gradient(rgba(249,249,247,0.62), rgba(249,249,247,0.62)), url(${loginBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <section className="mx-auto flex min-h-[calc(100vh-120px)] w-full max-w-5xl items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md">
-          <header className="mb-10 text-center">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#835244]">NỀN TẢNG LÀNG NGHỀ</p>
-            <h1 className="text-6xl font-bold tracking-[-0.02em]">Chào Mừng</h1>
-            <p className="mt-2 text-base text-[#5a605e]">Tiếp tục hành trình sáng tạo của bạn.</p>
-          </header>
-
-          <div className="rounded-xl bg-white p-8 shadow-[0_20px_40px_rgba(46,52,50,0.06)] md:p-10">
-            <form onSubmit={onSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="block px-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#5a605e]">Địa chỉ Email</label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@artisan.com"
-                  className="w-full rounded-sm bg-[#dee4e066] px-4 py-3 outline-none transition-all duration-200 focus-visible:bg-white focus-visible:shadow-[inset_0_0_0_1px_#83524433]"
-                  type="email"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-xs font-semibold uppercase tracking-[0.22em] text-[#5a605e]">Mật khẩu</label>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#835244] cursor-pointer">Quên mật khẩu?</span>
-                </div>
-                <div className="relative">
-                  <input
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="********"
-                    className="w-full rounded-sm bg-[#dee4e066] px-4 py-3 pr-12 outline-none transition-all duration-200 focus-visible:bg-white focus-visible:shadow-[inset_0_0_0_1px_#83524433]"
-                    type={showPassword ? "text" : "password"}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a605e] hover:text-[#835244] transition-colors focus:outline-none"
-                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                  >
-                    {showPassword ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                        <line x1="1" y1="1" x2="23" y2="23" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-md bg-[#835244] px-5 py-4 text-base font-semibold text-[#fff6f3] transition-all duration-200 hover:bg-[#754638] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
-              </button>
-            </form>
-
-            {message && <p className="mt-4 rounded-md bg-[#f2f4f2] px-4 py-3 text-sm text-[#5a605e]">{message}</p>}
-
-            <div className="relative my-7">
-              <div className="h-px w-full bg-[#e5e9e6]" />
-              <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-xs uppercase tracking-[0.22em] text-[#5a605e]">
-                Hoặc kết nối qua
-              </p>
-            </div>
-
-            <div className="w-full">
-              <button type="button" className="w-full rounded-md bg-[#f2f4f2] px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#5a605e] transition-colors hover:bg-[#e5e9e6]">
-                Google
-              </button>
-            </div>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-[#5a605e]">
-            Bạn mới biết đến nền tảng?{' '}
-            <button type="button" onClick={() => setMode('register')} className="font-semibold text-[#835244] hover:underline">
-              Tạo Tài Khoản
-            </button>
-          </p>
-        </div>
-      </section>
-
-      <footer className="bg-[#f2f4f2] px-6 py-8 text-center">
-        <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-5 text-[10px] uppercase tracking-[0.2em] text-[#5a605e]">
-          <span className="cursor-pointer">Chính Sách Bảo Mật</span>
-          <span className="cursor-pointer">Điều Khoản Dịch Vụ</span>
-          <span className="cursor-pointer">Liên Hệ Hỗ Trợ</span>
-        </div>
-        <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-[#5a605e]">
-          © 2024 Nghệ Nhân Số. Gìn giữ di sản.
-        </p>
-      </footer>
-    </main>
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthPageContent />
+    </Suspense>
   );
 }
