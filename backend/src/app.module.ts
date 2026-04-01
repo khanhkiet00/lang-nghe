@@ -7,6 +7,8 @@ import { ArtisansModule } from './artisans/artisans.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UploadModule } from './upload/upload.module';
 import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ArtisansModule,
     UploadModule,
+    ProductsModule,
+    ReviewsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

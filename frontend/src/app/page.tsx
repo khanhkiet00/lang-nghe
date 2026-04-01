@@ -1,271 +1,430 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+type HeroSlide = {
+  village: string;
+  quote: string;
+  image: string;
+};
+
+type ProductCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type ProductImage = {
+  id: string;
+  url: string;
+};
+
+type ProductItem = {
+  id: string;
+  title: string;
+  description?: string | null;
+  price_retail: number;
+  category: ProductCategory;
+  images: ProductImage[];
+  artisan?: {
+    id: string;
+    profile?: {
+      display_name?: string | null;
+      slug?: string | null;
+      avatar_url?: string | null;
+    } | null;
+  };
+};
+
+const heroSlides: HeroSlide[] = [
+  {
+    village: 'Làng Gốm Bát Tràng',
+    quote: 'Bảy thế kỷ di sản, kết tinh trong từng nhịp thở của đất.',
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuCzDiGegmUs46GdpAk6ZjkmA5S4MebA-iVR-r7IzM5VExUp6tuIWO8yvX7sSCLAV4TSpyvdxqMpNlJjopYlORHR1b4miZxSjCvM9k_k-0_6sYpv6ZlDZFDdqU9jT7pOZl8lJx0tDnRs_bYOeMoVYEXRliPkPG7M2et_P-PLH7NhZoqqoHZIFlu4d_3Y0lSGzrHK9AuWhGHQmAzSl_3fTX1LmCGn1cvjNGVkUObbAUEUORHTRDJVqXdEizCV4buCW8N0f3jwI2O4paQG',
+  },
+  {
+    village: 'Mây Tre Đan Phú Vinh',
+    quote: 'Sự mềm mại của mây, nét cứng cáp của tre tạo nên tuyệt tác.',
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuDGpjmxOSKP99JlCyJ8X5HjSXIZbhfnzo1YQaHLBW8eWG8Lg-3FSQj1dZoUJm2Fx-d_zgvgaBxDameAcuhmkpT9N77Jf7F_wRriF3Hf8cPz3ZLYD4Chf4tfRlHF11nqThK4Mla7d2ruzsYHx2uXrbzCrmfYvnfkj4rQoJGP4gwPNUC7REsz5-SQhOt7GCSa3m3Ll9GmmInqSFlFgHf3y6TWxOj-IoggADf43E9wNj9DfyuFxU7IOQP0yNpX7DvBca4Z34_ywxZL_FLM',
+  },
+  {
+    village: 'Lụa Vạn Phúc',
+    quote: 'Mượt mà như làn nước, rạng rỡ tựa ánh bình minh.',
+    image:
+      'https://lh3.googleusercontent.com/aida-public/AB6AXuDEJejclLL0AmOJbEaukSESmf4j6rzEa01IiJiL_gIQchSRF1Z0T7xf7D-CAOBQcqLl8SF9RI7GwcotjI7VgUSRS5AdbieGndvZCoMDwh5euzUQN8YCwX1iqnUGMDvGvHE8MmmAmiciWqbir91Pnf1-DumJJVSrn39HRQrHN24b9OuWtz2cCHOi0BgNfYMufDXoybaYkXW0ABVUbRyYdfNJt-E8k-DsdTC_8C25e6kvvchmkJSSYvOQRm0Rfrl1IAog77CajwhyIH7m',
+  },
+];
+
+const fallbackImage =
+  'https://images.unsplash.com/photo-1603321544554-f416a9a11fcf?q=80&w=1200&auto=format&fit=crop';
+
+const mockProducts: ProductItem[] = [
+  {
+    id: 'mock-1',
+    title: 'Bình Gốm Men Lam',
+    price_retail: 850000,
+    category: { id: 'cat-1', name: 'Gốm sứ truyền thống', slug: 'gom-su' },
+    images: [
+      {
+        id: 'img-1',
+        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAux-H9oO-sEYOK8uYpbgQLa57ZZAgEHCYNzE1BbxvWW1-GtsHkpbMLR9BvOBj6cS8y10WXiuuaJxvENt1GmXl0QlJbTCy-T-ULeRP8r9gQU8UkuIWYQjJ_zCPOCtZbIq6IBUfP1KoCgIlcW618VmrsetO--Ppt9bPy56x8wFJ1k54Y35VUL9s5mohV-5j7jhhASFd5c_vpPSXWQe4JXbxGWxZk1fry2mvGIlD65ItrBdZHzh0QH6ijTT-ROc5V79RE8sWEzTH3R4GH',
+      },
+    ],
+    artisan: { id: 'ar-1', profile: { display_name: 'Nghệ nhân Nguyễn Văn An' } },
+  },
+  {
+    id: 'mock-2',
+    title: 'Giỏ Mây Đan Thủ Công',
+    price_retail: 420000,
+    category: { id: 'cat-2', name: 'Mây tre đan', slug: 'may-tre-dan' },
+    images: [
+      {
+        id: 'img-2',
+        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGpjmxOSKP99JlCyJ8X5HjSXIZbhfnzo1YQaHLBW8eWG8Lg-3FSQj1dZoUJm2Fx-d_zgvgaBxDameAcuhmkpT9N77Jf7F_wRriF3Hf8cPz3ZLYD4Chf4tfRlHF11nqThK4Mla7d2ruzsYHx2uXrbzCrmfYvnfkj4rQoJGP4gwPNUC7REsz5-SQhOt7GCSa3m3Ll9GmmInqSFlFgHf3y6TWxOj-IoggADf43E9wNj9DfyuFxU7IOQP0yNpX7DvBca4Z34_ywxZL_FLM',
+      },
+    ],
+    artisan: { id: 'ar-2', profile: { display_name: 'Nghệ nhân Trần Thị Lan' } },
+  },
+  {
+    id: 'mock-3',
+    title: 'Khăn Chàm Thêu Tay',
+    price_retail: 590000,
+    category: { id: 'cat-3', name: 'Thổ cẩm', slug: 'tho-cam' },
+    images: [
+      {
+        id: 'img-3',
+        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAm2dgQ1mfysaV8ghDCo6q6ghgVhFhjPAiXwfRGrHuvbCma5klojycjdHcfbvH85wDuWzzPw1MIDrsbfD2Oe4ZMLrj4_VL1IcRmxvCUmfuLIYOEpN00q6e8OfrIaB3NiVGCcVNLZXwL0meWgrQpXuJKLTytARcWCf93s1BOkzkHbcb90iTJJhPc9jrGhvMYFUgmQyI8a4uo0fWN8iPyZNWAZQbC9IUG7pO0EO_DCx6Wl3FAVdqnqDGj-fNlXgdS8DANMGVYAQqNqbxZ',
+      },
+    ],
+    artisan: { id: 'ar-3', profile: { display_name: "H'Mông Collective" } },
+  },
+  {
+    id: 'mock-4',
+    title: 'Khay Gỗ Trắc Chạm',
+    price_retail: 1250000,
+    category: { id: 'cat-4', name: 'Đồ gỗ mỹ nghệ', slug: 'do-go' },
+    images: [
+      {
+        id: 'img-4',
+        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-It4Q7KrZ4NPoP4zeMb5icg2CMPwH8hX-vhPyHmgMZo_IMjDdv6Qo9BwwjKXhH5ysLrux3Eodd2JAUauK9RbJ2uWRVdDwazhv70uALsgBiK88lezArcJ2av9-ZZpl84wUqj1_n3S-tV4kiWw29LpClHSYKffEuNSGUeXike-18Yka_jMkTZHKBk28PKXGKiAmIbsWW_wRly0mKTnrzNKzCmT2PHfuWkYx6tUDx8eyjXSb4PxribQvLjsXPf_QYhIzk6P0U486FUho',
+      },
+    ],
+    artisan: { id: 'ar-4', profile: { display_name: 'Nghệ nhân Phạm Hùng' } },
+  },
+];
+
+function formatVnd(value: number): string {
+  return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
+}
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('12345678');
-  const [fullName, setFullName] = useState('');
-  const [description, setDescription] = useState('');
-  const [expertise, setExpertise] = useState('');
-  const [location, setLocation] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [cccdUrl, setCccdUrl] = useState('');
-  const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [allProducts, setAllProducts] = useState<ProductItem[]>(mockProducts);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productError, setProductError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategorySlug, setActiveCategorySlug] = useState('all');
 
-  async function handleUploadAvatar(file: File) {
-    if (!file) return;
-    setMessage('Getting signed upload URL...');
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
-    const signatureResp = await fetch(`${API_BASE}/upload/url`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ folder: 'artisan-avatars' }),
-    });
+  useEffect(() => {
+    const controller = new AbortController();
 
-    if (!signatureResp.ok) {
-      setMessage('Không thể lấy chữ ký upload Cloudinary');
-      return;
-    }
+    async function loadProducts() {
+      setLoadingProducts(true);
+      setProductError('');
 
-    const signed = await signatureResp.json();
-    const form = new FormData();
-    form.append('file', file);
-    form.append('api_key', signed.apiKey);
-    form.append('timestamp', signed.timestamp.toString());
-    form.append('signature', signed.signature);
-    form.append('folder', signed.folder);
+      try {
+        const response = await fetch(`${API_BASE}/products?page=1&limit=24`, {
+          signal: controller.signal,
+        });
 
-    setMessage('Uploading image to Cloudinary...');
+        if (!response.ok) {
+          throw new Error('Không thể tải danh sách sản phẩm');
+        }
 
-    const cloudResp = await fetch(`https://api.cloudinary.com/v1_1/${signed.cloudName}/auto/upload`, {
-      method: 'POST',
-      body: form,
-    });
+        const json = (await response.json()) as {
+          data?: { items?: ProductItem[] };
+        };
 
-    if (!cloudResp.ok) {
-      setMessage('Upload ảnh thất bại');
-      return;
-    }
-
-    const data = await cloudResp.json();
-    setAvatarUrl(data.secure_url);
-    setMessage('Upload ảnh thành công!');
-  }
-
-  async function createArtisan(e: FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('Đang đăng nhập...');
-
-    try {
-      const loginRes = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!loginRes.ok) {
-        setMessage('Đăng nhập thất bại, cần đăng ký trước.');
-        setLoading(false);
-        return;
+        const items = json.data?.items ?? [];
+        if (items.length > 0) {
+          setAllProducts(items);
+        } else {
+          setAllProducts(mockProducts);
+          setProductError('API chưa có sản phẩm, đang hiển thị dữ liệu mẫu.');
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setAllProducts(mockProducts);
+          setProductError('Không kết nối được API, đang hiển thị dữ liệu mẫu.');
+        }
+      } finally {
+        setLoadingProducts(false);
       }
-
-      const loginData = await loginRes.json();
-      const token = loginData.accessToken;
-      setMessage('Tạo hồ sơ artisan...');
-
-      const profileRes = await fetch(`${API_BASE}/artisans/me`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ fullName, description, expertise, location, avatarUrl, cccdUrl }),
-      });
-
-      if (!profileRes.ok) {
-        const errorData = await profileRes.json().catch(() => null);
-        setMessage(`Tạo hồ sơ thất bại: ${errorData?.message || profileRes.statusText}`);
-        setLoading(false);
-        return;
-      }
-
-      const data = await profileRes.json();
-      setMessage(`Tạo thành công! Slug: ${data.slug}. Xem tại /nghe-nhan/${data.slug}`);
-    } catch (error) {
-      setMessage('Có lỗi khi tạo profile. Vui lòng thử lại.');
-    } finally {
-      setLoading(false);
     }
-  }
+
+    void loadProducts();
+
+    return () => controller.abort();
+  }, []);
+
+  const categories = Array.from(
+    new Map(
+      allProducts
+        .map((product) => product.category)
+        .filter(Boolean)
+        .map((category) => [category.slug, category]),
+    ).values(),
+  );
+
+  const visibleProducts = allProducts.filter((product) => {
+    const categoryMatch =
+      activeCategorySlug === 'all' || product.category.slug === activeCategorySlug;
+    const searchMatch =
+      searchTerm.trim().length === 0 ||
+      product.title.toLowerCase().includes(searchTerm.toLowerCase());
+    return categoryMatch && searchMatch;
+  });
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#09090B] text-zinc-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(99,102,241,0.08),transparent_45%),radial-gradient(circle_at_85%_15%,rgba(244,114,182,0.07),transparent_35%)]" />
+    <div className="bg-[#F9F9F7] text-[#1A1C1C]">
+      <nav className="fixed top-0 z-50 w-full border-b border-black/5 bg-white/75 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 md:px-8">
+          <div className="shrink-0 text-2xl font-extrabold tracking-tight text-[#C84B31]">
+            Làng Nghề
+          </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 p-4 md:p-8">
-        <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm md:p-8">
-          <p className="text-sm uppercase tracking-[0.24em] text-zinc-400">Lang Nghe Workspace</p>
-          <h1 className="mt-3 text-2xl font-semibold leading-tight text-zinc-100 md:text-4xl">
-            Tạo hồ sơ nghệ nhân nhanh, sạch, tối giản.
-          </h1>
-          <p className="mt-4 max-w-3xl text-base text-zinc-300">
-            Luồng hiện tại đã có: đăng nhập, tạo hoặc cập nhật hồ sơ artisan, upload ảnh lên Cloudinary, và xem trang public theo slug SSR.
-          </p>
-          <p className="mt-4 text-sm text-zinc-400">
-            API base: <span className="rounded-md border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-200">{API_BASE}</span>
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3 text-sm">
-            <Link
-              href="/auth"
-              className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300 transition-all duration-200 ease-out hover:border-zinc-600 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
-            >
-              Mo trang auth
-            </Link>
-            <Link
-              href="/dashboard/nghe-nhan"
-              className="rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-300 transition-all duration-200 ease-out hover:border-zinc-600 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
-            >
-              Mo dashboard nghe nhan
-            </Link>
+          <div className="hidden flex-1 px-10 md:block">
+            <div className="mx-auto max-w-md rounded-full bg-[#F2F4F2] px-4 py-2.5">
+              <input
+                type="text"
+                placeholder="Tìm kiếm tinh hoa làng nghề..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="w-full bg-transparent text-sm text-zinc-700 placeholder:text-zinc-400 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-5">
+            <div className="hidden items-center gap-7 lg:flex">
+              <a className="font-bold text-[#C84B31]" href="#">
+                Trang chủ
+              </a>
+              <a className="font-medium text-zinc-600 hover:text-[#C84B31]" href="#">
+                Nghệ nhân
+              </a>
+            </div>
+            <button className="relative text-zinc-600 hover:text-[#C84B31]">
+              <span>Giỏ hàng</span>
+              <span className="absolute -right-3 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#C84B31] text-[10px] font-bold text-white">
+                2
+              </span>
+            </button>
+            <img
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5LVvXgxx-E-_57gSL5yTTHo_76HhRKKKX0zvbt3BVTPVJ1MjIAA9uFcNBjB-jgeuX4jDcr8IPeK6Cnu-_xv26QGMYOEP6BC0FLFYTRNLGxMe6gQqdh3sMjLdOooevoZNZR6A6i-z4EAapm6gP-9bb8sLyLsebdzA9jFH7Pmsya64g91i6l-Qj1dQ-9K925hZ6yMeqQKhdobUcUtJUpbaLz4Z_eheMnOsw-FxAVh1c5RbGBFFrxa9cH3LeKO3ap-ovGyJdQTW6rL5"
+              alt="Hồ sơ"
+              className="h-10 w-10 rounded-full border-2 border-[#C84B31]/15 object-cover"
+            />
+          </div>
+        </div>
+      </nav>
+
+      <main className="mx-auto max-w-7xl px-6 pb-24 pt-24 md:px-8">
+        <section className="mb-24 grid grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-12">
+          <div className="relative h-[380px] md:col-span-7 md:h-[500px]">
+            <div className="relative h-full overflow-hidden rounded-2xl bg-zinc-200 shadow-2xl">
+              {heroSlides.map((slide, index) => (
+                <img
+                  key={slide.village}
+                  src={slide.image}
+                  alt={slide.village}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                    index === activeSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="absolute -bottom-6 right-4 max-w-xs rounded-2xl bg-[#D4ECA2] px-6 py-5 shadow-lg md:right-10">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#4A5D23]/70">
+                Nguồn gốc di sản
+              </p>
+              <p className="mt-1 text-xl font-bold text-[#4A5D23]">{heroSlides[activeSlide].village}</p>
+              <p className="mt-2 text-sm italic text-[#4A5D23]/90">
+                &ldquo;{heroSlides[activeSlide].quote}&rdquo;
+              </p>
+            </div>
+
+            <div className="absolute bottom-5 left-6 flex gap-2">
+              {heroSlides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveSlide(index)}
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === activeSlide ? 'w-8 bg-[#C84B31]' : 'w-2 bg-white/60'
+                  }`}
+                  aria-label={`Slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="md:col-span-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#4A5D23]">Cảm hứng từ quá khứ</p>
+            <h1 className="mt-4 text-5xl font-extrabold leading-[1.1] tracking-tight text-[#1A1C1C] md:text-6xl">
+              Thổi <span className="italic text-[#C84B31]">Hồn</span> Vào Đất Đá.
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed text-zinc-500">
+              Khám phá không gian trưng bày các tác phẩm thủ công đích thực, nơi di sản được kể bằng ngôn ngữ của nghệ thuật hiện đại.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <button className="rounded-xl bg-[#C84B31] px-8 py-4 font-bold text-white shadow-lg shadow-[#C84B31]/20 transition-all hover:opacity-90">
+                Khám Phá Ngay
+              </button>
+              <button className="px-8 py-4 font-bold text-[#C84B31] underline-offset-8 hover:underline">
+                Về Chúng Tôi
+              </button>
+            </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-zinc-100 md:text-2xl">Tạo hồ sơ nghệ nhân</h2>
-            <p className="mt-2 text-sm text-zinc-400">Hoàn tất thông tin cơ bản và upload avatar trước khi tạo profile.</p>
+        <section className="mb-16 sticky top-[72px] z-40">
+          <div className="hide-scrollbar overflow-x-auto rounded-full bg-[#F2F4F2] px-8 py-4 shadow-sm">
+            <div className="flex items-center gap-8 whitespace-nowrap text-sm font-medium">
+                <button
+                  onClick={() => setActiveCategorySlug('all')}
+                  className={`pb-1 ${
+                    activeCategorySlug === 'all'
+                      ? 'border-b-2 border-[#C84B31] font-bold text-[#C84B31]'
+                      : 'text-zinc-500 hover:text-[#C84B31]'
+                  }`}
+                >
+                  Tất cả sản phẩm
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={category.slug}
+                    onClick={() => setActiveCategorySlug(category.slug)}
+                    className={`pb-1 ${
+                      activeCategorySlug === category.slug
+                        ? 'border-b-2 border-[#C84B31] font-bold text-[#C84B31]'
+                        : 'text-zinc-500 hover:text-[#C84B31]'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+            </div>
+          </div>
+        </section>
 
-            <form className="mt-6 space-y-4" onSubmit={createArtisan}>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                  required
-                />
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Mật khẩu"
-                  type="password"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                  required
-                />
-              </div>
+        <section className="mb-20">
+          <h2 className="text-4xl font-extrabold tracking-tight">Khám Phá Di Sản</h2>
+          <p className="mt-2 text-zinc-400">Duyệt theo bộ sưu tập làng nghề đích thực.</p>
 
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Họ và tên"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                required
-              />
+          {loadingProducts && (
+            <p className="mt-6 text-zinc-500">Đang tải dữ liệu sản phẩm...</p>
+          )}
 
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Giới thiệu"
-                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                rows={3}
-              />
+          {productError && (
+            <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              {productError}
+            </p>
+          )}
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <input
-                  value={expertise}
-                  onChange={(e) => setExpertise(e.target.value)}
-                  placeholder="Chuyên môn"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                />
-                <input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Địa điểm"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                />
-              </div>
+          {!loadingProducts && !productError && visibleProducts.length === 0 && (
+            <p className="mt-6 text-zinc-500">
+              Không có sản phẩm phù hợp với bộ lọc hiện tại.
+            </p>
+          )}
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <input
-                  value={avatarUrl}
-                  onChange={(e) => setAvatarUrl(e.target.value)}
-                  placeholder="Avatar URL"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                />
-                <input
-                  value={cccdUrl}
-                  onChange={(e) => setCccdUrl(e.target.value)}
-                  placeholder="CCCD URL"
-                  className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none transition-all duration-200 ease-out placeholder:text-zinc-500 focus-visible:border-violet-500"
-                />
-              </div>
-
-              <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-4">
-                <label className="mb-2 block text-sm text-zinc-400">Upload avatar lên Cloudinary</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="w-full text-sm text-zinc-300 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-800 file:px-3 file:py-2 file:text-zinc-200 hover:file:bg-zinc-700"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    await handleUploadAvatar(file);
-                  }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="rounded-md bg-violet-600 px-4 py-2 font-semibold text-white transition-all duration-200 ease-out hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={loading}
+          <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {visibleProducts.map((product) => (
+              <article
+                key={product.id}
+                className="group rounded-3xl bg-white p-5 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl"
               >
-                {loading ? 'Đang xử lý...' : 'Tạo hồ sơ artisan'}
-              </button>
-            </form>
-
-            {message && <p className="mt-4 break-words rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-300">{message}</p>}
-          </section>
-
-          <aside className="space-y-6">
-            <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-5 backdrop-blur-sm">
-              <h3 className="text-base font-semibold text-zinc-100">Luồng đã có</h3>
-              <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-                <li>Đăng nhập lấy access token</li>
-                <li>Tạo hoặc cập nhật hồ sơ nghệ nhân</li>
-                <li>Upload avatar lên Cloudinary</li>
-                <li>Xem hồ sơ public bằng slug</li>
-              </ul>
-            </section>
-
-            <section className="rounded-lg border border-zinc-800/90 bg-zinc-900/80 p-5 backdrop-blur-sm">
-              <h3 className="text-base font-semibold text-zinc-100">Link xem profile</h3>
-              <p className="mt-2 text-sm text-zinc-400">Sau khi tạo thành công, mở:</p>
-              <p className="mt-3 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200">
-                /nghe-nhan/your-slug
-              </p>
-              {avatarUrl && (
-                <div className="mt-4">
-                  <p className="text-sm text-zinc-400">Avatar preview</p>
-                  <Image
-                    src={avatarUrl}
-                    alt="avatar"
-                    width={640}
-                    height={320}
-                    className="mt-2 max-h-44 w-full rounded-md border border-zinc-700 object-cover"
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-100">
+                  <img
+                    src={product.images?.[0]?.url || fallbackImage}
+                    alt={product.title}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
+                  <span className="absolute left-3 top-3 rounded-full bg-[#D4ECA2] px-3 py-1.5 text-[9px] font-bold tracking-widest text-[#4A5D23]">
+                    {product.category?.name?.toUpperCase() || 'LÀNG NGHỀ'}
+                  </span>
                 </div>
-              )}
-            </section>
-          </aside>
+
+                <div className="mt-5">
+                  <p className="text-[11px] text-amber-500">★★★★★</p>
+                  <div className="mt-2 flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-bold leading-tight transition-colors group-hover:text-[#C84B31]">
+                      {product.title}
+                    </h3>
+                    <span className="font-extrabold text-[#C84B31]">
+                      {formatVnd(product.price_retail)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#4A5D23]">
+                    {product.artisan?.profile?.display_name || 'Nghệ nhân làng nghề'}
+                  </p>
+                  <button className="mt-4 w-full rounded-2xl bg-[#1A1C1C] py-4 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#C84B31]">
+                    Thêm vào giỏ
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer className="rounded-t-[3rem] bg-[#1A1C1C] px-8 py-20 text-zinc-400">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-14 md:grid-cols-4">
+          <div className="md:col-span-2">
+            <p className="text-2xl font-bold tracking-tight text-white">Làng Nghề</p>
+            <p className="mt-5 max-w-sm leading-relaxed">
+              Nơi hội tụ những giá trị thủ công nguyên bản. Mỗi tạo tác là một mảnh linh hồn của văn hóa Việt Nam.
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">Hành trình</p>
+            <ul className="mt-5 space-y-3 text-sm">
+              <li>
+                <a href="#" className="hover:text-[#C84B31]">
+                  Về chúng tôi
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#C84B31]">
+                  Danh bạ Nghệ nhân
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white">Liên hệ</p>
+            <p className="mt-5 text-sm leading-loose">
+              Hà Nội, Việt Nam
+              <br />
+              contact@heritagehearth.vn
+              <br />
+              (+84) 900 000 000
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </footer>
+    </div>
   );
 }

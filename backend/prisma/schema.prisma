@@ -9,21 +9,25 @@ datasource db {
 }
 
 model User {
-  id            String           @id @default(uuid())
-  email         String           @unique
-  phone         String?          @unique
-  password      String
-  isEmailVerified Boolean        @default(false)
-  roles         UserRole[]
-  otps          Otp[]
-  refreshTokens RefreshToken[]
-  artisanProfile ArtisanProfile?
-  walletBalance Int              @default(0)
-  reputationScore Float          @default(0)
-  isSuspended   Boolean          @default(false)
-  isB2bEnabled  Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id              String           @id @default(uuid())
+  email           String           @unique
+  phone           String?          @unique
+  password        String
+  isEmailVerified Boolean          @default(false)
+  roles           UserRole[]
+  otps            Otp[]
+  refreshTokens   RefreshToken[]
+  artisanProfile  ArtisanProfile?
+  profile         Profile?
+  products        Product[]
+  reviewsGiven    Review[]         @relation("ReviewsGiven")
+  reviewsReceived Review[]         @relation("ReviewsReceived")
+  walletBalance   Int              @default(0)
+  reputationScore Float            @default(0)
+  isSuspended     Boolean          @default(false)
+  isB2bEnabled    Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model ArtisanProfile {
@@ -51,35 +55,97 @@ model UserRole {
 }
 
 model Product {
+  id              String         @id @default(uuid())
+  artisanId       String
+  artisan         User           @relation(fields: [artisanId], references: [id])
+  categoryId      String
+  category        Category       @relation(fields: [categoryId], references: [id])
+  title           String
+  slug            String         @unique
+  description     String?
+  price_retail    Int            @default(0)
+  price_wholesale Int            @default(0)
+  quantity        Int            @default(0)
+  version         Int            @default(0)
+  isActive        Boolean        @default(true)
+  isB2bAvailable  Boolean        @default(false)
+  images          ProductImage[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([artisanId])
+  @@index([categoryId])
+}
+
+model Order {
+  id             String   @id @default(uuid())
+  buyerId        String
+  artisanId      String
+  status         String   @default("pending")
+  paymentStatus  String   @default("pending")
+  paymentMethod  String?
+  subtotal       Int
+  shippingFee    Int      @default(0)
+  platformFee    Int      @default(0)
+  artisanAmount  Int      @default(0)
+  reviews        Review[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Profile {
   id           String   @id @default(uuid())
-  artisanId    String
-  title        String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String   @unique
+  display_name String
+  bio          String?
+  village      String?
+  avatar_url   String?
   slug         String   @unique
-  description  String?
-  categoryId   String?
-  priceRetail  Int      @default(0)
-  priceWholesale Int    @default(0)
-  quantity     Int      @default(0)
-  version      Int      @default(1)
-  isActive     Boolean  @default(true)
-  isB2bAvailable Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
 
-model Order {
-  id           String   @id @default(uuid())
-  buyerId      String
-  artisanId    String
-  status       String   @default("pending")
-  paymentStatus String  @default("pending")
-  paymentMethod String?
-  subtotal     Int
-  shippingFee  Int      @default(0)
-  platformFee  Int      @default(0)
-  artisanAmount  Int    @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Review {
+  id                   String   @id @default(uuid())
+  reviewer_id          String
+  reviewer             User     @relation("ReviewsGiven", fields: [reviewer_id], references: [id])
+  reviewee_id          String
+  reviewee             User     @relation("ReviewsReceived", fields: [reviewee_id], references: [id])
+  order_id             String
+  order                Order    @relation(fields: [order_id], references: [id])
+  rating_quality       Int
+  rating_accuracy      Int
+  rating_shipping      Int
+  rating_communication Int
+  rating_payment       Int
+  comment              String?
+  images               String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([reviewee_id])
+  @@index([order_id])
+  @@unique([order_id, reviewer_id, reviewee_id])
 }
 
 model Otp {

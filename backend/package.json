@@ -17,7 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e:prepare": "ts-node test/prepare-e2e.ts",
+    "test:e2e": "npm run test:e2e:prepare && jest --config ./test/jest-e2e.json",
+    "db:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -39,7 +44,8 @@
     "passport-jwt": "^4.0.1",
     "prisma": "^5.10.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "slugify": "^1.6.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

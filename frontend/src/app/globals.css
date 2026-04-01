@@ -2,37 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #09090b;
-  --surface: #18181b;
-  --border: #27272a;
-  --text-primary: #e4e4e7;
-  --text-secondary: #a1a1aa;
-}
-
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen;
-  background: var(--bg);
-  color: var(--text-primary);
+  background: #f9f9f7;
+  color: #1a1c1c;
 }
 
 * {
   box-sizing: border-box;
 }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.12;
-  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(circle at center, black, transparent 75%);
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 a,
@@ -40,18 +28,4 @@ button,
 input,
 textarea {
   transition: all 0.2s ease-out;
-}
-
-@layer components {
-  .surface-card {
-    @apply rounded-lg border border-zinc-800 bg-zinc-900/80 backdrop-blur-sm;
-  }
-
-  .field {
-    @apply w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-200 outline-none placeholder:text-zinc-500 focus-visible:border-violet-500;
-  }
-
-  .btn-primary {
-    @apply rounded-md bg-violet-600 px-4 py-2 font-semibold text-white hover:bg-violet-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900;
-  }
 }

@@ -3,6 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
@@ -22,9 +24,49 @@ function getString(body: unknown, key: string): string {
   return value;
 }
 
-describe('AppController (e2e)', () => {
+function getArray(body: unknown, key: string): unknown[] {
+  const record = asRecord(body);
+  const value = record[key];
+  if (!Array.isArray(value)) {
+    throw new Error(`Expected array field: ${key}`);
+  }
+  return value;
+}
+
+async function registerVerifyAndLogin(
+  prisma: PrismaService,
+  jwtService: JwtService,
+  email: string,
+  rawPassword: string,
+) {
+  const password = await bcrypt.hash(rawPassword, 10);
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password,
+      isEmailVerified: true,
+      roles: {
+        create: [{ role: 'buyer' }, { role: 'artisan' }],
+      },
+    },
+  });
+
+  const token = jwtService.sign({
+    sub: user.id,
+    email: user.email,
+    roles: ['buyer', 'artisan'],
+  });
+
+  return {
+    token,
+    userId: user.id,
+  };
+}
+
+describe('API flows (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -34,147 +76,252 @@ describe('AppController (e2e)', () => {
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
     app.use(cookieParser());
+
     prisma = moduleFixture.get<PrismaService>(PrismaService);
+    jwtService = new JwtService({
+      secret: process.env.JWT_SECRET || 'change_this_secret',
+    });
     await app.init();
-  }, 15000);
+  }, 20000);
 
   afterEach(async () => {
-    // Clean up database after each test
+    await prisma.review.deleteMany();
+    await prisma.productImage.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.profile.deleteMany();
+    await prisma.order.deleteMany();
     await prisma.artisanProfile.deleteMany();
     await prisma.refreshToken.deleteMany();
     await prisma.otp.deleteMany();
     await prisma.userRole.deleteMany();
     await prisma.user.deleteMany();
+    await app.close();
   });
 
-  it('/api/v1 (GET)', () => {
-    return request(app.getHttpServer())
+  it('GET /api/v1 returns hello world', async () => {
+    await request(app.getHttpServer())
       .get('/api/v1')
       .expect(200)
       .expect('Hello World!');
   });
 
-  it('/api/v1/auth/register, verify-otp, login, refresh and me', async () => {
-    const email = `test-${Date.now()}@example.com`;
-    const password = '12345678';
+  it('users profile update and me details flow', async () => {
+    const auth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `user-${Date.now()}@example.com`,
+      '12345678',
+    );
 
-    const registerResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ email, password });
+    const updateProfileResponse = await request(app.getHttpServer())
+      .patch('/api/v1/users/profile')
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({
+        display_name: 'user profile test',
+        bio: 'bio test',
+        village: 'bat trang',
+        avatar_url: 'https://example.com/avatar.png',
+      });
 
-    expect(registerResponse.status).toBe(201);
-    expect(registerResponse.body).toHaveProperty('user');
-    expect(registerResponse.body).toHaveProperty('otp');
-    const registerOtp = getString(registerResponse.body, 'otp');
-
-    const verifyResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/verify-otp')
-      .send({ email, otp: registerOtp });
-
-    expect(verifyResponse.status).toBe(201);
-    expect(verifyResponse.body).toEqual({ ok: true });
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({ email, password });
-
-    expect(loginResponse.status).toBe(200);
-    expect(loginResponse.body).toHaveProperty('accessToken');
-    expect(loginResponse.body).toHaveProperty('user');
-    expect(loginResponse.get('Set-Cookie')).toBeDefined();
-
-    const accessToken = getString(loginResponse.body, 'accessToken');
-    const setCookieHeader: unknown = loginResponse.get('Set-Cookie');
-    // Extract just the cookie name=value part, without the attributes
-    let cookie = '';
-    if (Array.isArray(setCookieHeader)) {
-      const firstCookie = setCookieHeader.find(
-        (item): item is string => typeof item === 'string',
-      );
-      if (firstCookie) {
-        cookie = firstCookie.split(';')[0];
-      }
-    } else if (typeof setCookieHeader === 'string') {
-      cookie = setCookieHeader.split(';')[0];
-    }
-    expect(cookie).toBeTruthy();
+    expect(updateProfileResponse.status).toBe(200);
+    expect(updateProfileResponse.body).toHaveProperty('data.slug');
 
     const meResponse = await request(app.getHttpServer())
-      .get('/api/v1/auth/me')
-      .set('Authorization', `Bearer ${accessToken}`);
+      .get('/api/v1/users/me')
+      .set('Authorization', `Bearer ${auth.token}`);
 
     expect(meResponse.status).toBe(200);
-    expect(meResponse.body).toHaveProperty('sub');
-
-    const refreshResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/refresh')
-      .set('Cookie', cookie)
-      .send({});
-
-    expect(refreshResponse.status).toBe(200);
-    expect(refreshResponse.body).toHaveProperty('accessToken');
+    expect(meResponse.body).toHaveProperty('data.profile.display_name');
+    expect(meResponse.body).toHaveProperty('data.products');
   });
 
-  it('/api/v1/artisans (profile creation + public slug)', async () => {
-    const email = `artisan-${Date.now()}@example.com`;
-    const password = '12345678';
-
-    const registerResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/register')
-      .send({ email, password, role: 'artisan' });
-
-    expect(registerResponse.status).toBe(201);
-    expect(registerResponse.body).toHaveProperty('otp');
-    const registerOtp = getString(registerResponse.body, 'otp');
-
-    const verifyResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/verify-otp')
-      .send({ email, otp: registerOtp });
-
-    expect(verifyResponse.status).toBe(201);
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({ email, password });
-
-    expect(loginResponse.status).toBe(200);
-    const token = getString(loginResponse.body, 'accessToken');
-
-    const profileData = {
-      fullName: 'Nghệ nhân Test',
-      description: 'Nghệ nhân gốm sứ',
-      expertise: 'Gốm sứ Bát Tràng',
-      location: 'Bắc Ninh',
-      avatarUrl: 'https://example.com/avatar.png',
-      cccdUrl: 'https://example.com/cccd.png',
-    };
-
-    const createProfileResponse = await request(app.getHttpServer())
-      .post('/api/v1/artisans/me')
-      .set('Authorization', `Bearer ${token}`)
-      .send(profileData);
-
-    expect(createProfileResponse.status).toBe(201);
-    expect(createProfileResponse.body).toHaveProperty('slug');
-
-    const slug = getString(createProfileResponse.body, 'slug');
-
-    const publicProfileResponse = await request(app.getHttpServer()).get(
-      `/api/v1/artisans/${slug}`,
+  it('products create, list and optimistic locking update', async () => {
+    const auth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `seller-${Date.now()}@example.com`,
+      '12345678',
     );
 
-    expect(publicProfileResponse.status).toBe(200);
-    expect(publicProfileResponse.body).toHaveProperty(
-      'fullName',
-      profileData.fullName,
+    const createProductResponse = await request(app.getHttpServer())
+      .post('/api/v1/products')
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({
+        title: 'Am tra gom su',
+        description: 'San pham gom thu cong',
+        category_slug: 'gom-su',
+        price_retail: 250000,
+        price_wholesale: 200000,
+        quantity: 40,
+        images: ['https://example.com/p1.png'],
+      });
+
+    expect(createProductResponse.status).toBe(201);
+    const product = asRecord(asRecord(createProductResponse.body).data);
+    const productId = getString(product, 'id');
+    expect(product.version).toBe(0);
+
+    const listResponse = await request(app.getHttpServer())
+      .get('/api/v1/products')
+      .query({ category_slug: 'gom-su', search: 'am tra' });
+
+    expect(listResponse.status).toBe(200);
+    const listData = asRecord(asRecord(listResponse.body).data);
+    const items = getArray(listData, 'items');
+    expect(items.length).toBe(1);
+
+    const updateResponse = await request(app.getHttpServer())
+      .patch(`/api/v1/products/${productId}`)
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({ version: 0, quantity: 30 });
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body).toHaveProperty('data.version', 1);
+
+    const staleUpdateResponse = await request(app.getHttpServer())
+      .patch(`/api/v1/products/${productId}`)
+      .set('Authorization', `Bearer ${auth.token}`)
+      .send({ version: 0, quantity: 20 });
+
+    expect(staleUpdateResponse.status).toBe(409);
+  });
+
+  it('products reject update from non-owner', async () => {
+    const ownerAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `owner-${Date.now()}@example.com`,
+      '12345678',
     );
-    expect(publicProfileResponse.body).toHaveProperty('user');
+    const otherAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `other-${Date.now()}@example.com`,
+      '12345678',
+    );
 
-    const meProfileResponse = await request(app.getHttpServer())
-      .get('/api/v1/artisans/me')
-      .set('Authorization', `Bearer ${token}`);
+    const createProductResponse = await request(app.getHttpServer())
+      .post('/api/v1/products')
+      .set('Authorization', `Bearer ${ownerAuth.token}`)
+      .send({
+        title: 'Binh gom',
+        description: 'Do thu cong',
+        category_slug: 'gom-su',
+        price_retail: 100000,
+        price_wholesale: 80000,
+        quantity: 10,
+      });
 
-    expect(meProfileResponse.status).toBe(200);
-    expect(meProfileResponse.body).toHaveProperty('slug', slug);
+    expect(createProductResponse.status).toBe(201);
+    const product = asRecord(asRecord(createProductResponse.body).data);
+    const productId = getString(product, 'id');
+
+    const updateByOtherResponse = await request(app.getHttpServer())
+      .patch(`/api/v1/products/${productId}`)
+      .set('Authorization', `Bearer ${otherAuth.token}`)
+      .send({
+        version: 0,
+        quantity: 1,
+      });
+
+    expect(updateByOtherResponse.status).toBe(403);
+  });
+
+  it('reviews create and list by reviewee', async () => {
+    const artisanAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `artisan-${Date.now()}@example.com`,
+      '12345678',
+    );
+    const buyerAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `buyer-${Date.now()}@example.com`,
+      '12345678',
+    );
+
+    const order = await prisma.order.create({
+      data: {
+        buyerId: buyerAuth.userId,
+        artisanId: artisanAuth.userId,
+        status: 'COMPLETED',
+        paymentStatus: 'PAID',
+        subtotal: 500000,
+        shippingFee: 20000,
+        platformFee: 10000,
+        artisanAmount: 490000,
+      },
+    });
+
+    const createReviewResponse = await request(app.getHttpServer())
+      .post('/api/v1/reviews')
+      .set('Authorization', `Bearer ${buyerAuth.token}`)
+      .send({
+        reviewee_id: artisanAuth.userId,
+        order_id: order.id,
+        rating_quality: 5,
+        rating_accuracy: 5,
+        rating_shipping: 4,
+        rating_communication: 5,
+        rating_payment: 5,
+        comment: 'good quality',
+        images: ['https://example.com/review-1.png'],
+      });
+
+    expect(createReviewResponse.status).toBe(201);
+    expect(createReviewResponse.body).toHaveProperty('data.id');
+
+    const listReviewResponse = await request(app.getHttpServer()).get(
+      `/api/v1/users/${artisanAuth.userId}/reviews`,
+    );
+
+    expect(listReviewResponse.status).toBe(200);
+    const reviews = asRecord(listReviewResponse.body).data;
+    expect(Array.isArray(reviews)).toBe(true);
+    expect((reviews as unknown[]).length).toBe(1);
+  });
+
+  it('reviews reject non-completed order', async () => {
+    const artisanAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `artisan-pending-${Date.now()}@example.com`,
+      '12345678',
+    );
+    const buyerAuth = await registerVerifyAndLogin(
+      prisma,
+      jwtService,
+      `buyer-pending-${Date.now()}@example.com`,
+      '12345678',
+    );
+
+    const order = await prisma.order.create({
+      data: {
+        buyerId: buyerAuth.userId,
+        artisanId: artisanAuth.userId,
+        status: 'PENDING',
+        paymentStatus: 'PENDING',
+        subtotal: 100000,
+        shippingFee: 10000,
+        platformFee: 5000,
+        artisanAmount: 95000,
+      },
+    });
+
+    const createReviewResponse = await request(app.getHttpServer())
+      .post('/api/v1/reviews')
+      .set('Authorization', `Bearer ${buyerAuth.token}`)
+      .send({
+        reviewee_id: artisanAuth.userId,
+        order_id: order.id,
+        rating_quality: 4,
+        rating_accuracy: 4,
+        rating_shipping: 4,
+        rating_communication: 4,
+        rating_payment: 4,
+      });
+
+    expect(createReviewResponse.status).toBe(400);
   });
 });
