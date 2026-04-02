@@ -130,6 +130,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategorySlug, setActiveCategorySlug] = useState('all');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -180,7 +181,17 @@ export default function Home() {
 
   useEffect(() => {
     const token = localStorage.getItem('langnghe_access_token');
-    setIsLoggedIn(Boolean(token));
+    if (token) {
+      setIsLoggedIn(true);
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.email) {
+          setUserName(payload.email.split('@')[0]);
+        }
+      } catch (e) {}
+    } else {
+      setIsLoggedIn(false);
+    }
   }, []);
 
   async function handleLogout() {
@@ -284,7 +295,10 @@ export default function Home() {
                 </Link>
               </div>
             ) : (
-              <div className="group relative">
+              <div className="group relative flex items-center gap-3">
+                <span className="text-sm font-bold text-zinc-600">
+                  {userName}
+                </span>
                 <button
                   onClick={() => setAuthMenuOpen((prev) => !prev)}
                   className="h-10 w-10 cursor-pointer overflow-hidden rounded-full border-2 border-[#C84B31]/10 transition-all hover:border-[#C84B31]"
@@ -402,7 +416,7 @@ export default function Home() {
                     alt="Bình Gốm"
                   />
                   <div className="absolute left-6 top-6 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#C84B31] shadow-sm backdrop-blur-md">
-                    BÁN CHẠY NHẤT
+                    NỔI BẬT
                   </div>
                 </div>
                 <div className="bg-white p-10">

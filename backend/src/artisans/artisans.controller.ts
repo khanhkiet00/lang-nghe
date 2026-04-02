@@ -30,6 +30,16 @@ export class ArtisansController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Post('register')
+  async registerArtisan(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: CreateArtisanProfileDto,
+  ) {
+    const userId = req.user.sub;
+    return this.artisansService.registerArtisan(userId, body);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getMyProfile(@Req() req: AuthenticatedRequest) {
     const userId = req.user.sub;

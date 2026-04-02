@@ -40,7 +40,7 @@ export class AuthService {
       email,
       phone,
       password: hashedPassword,
-      roles: ['buyer', 'artisan'],
+      roles: ['buyer'],
     });
 
     const otp = await this.createOtp(email, 'register');

@@ -116,6 +116,9 @@ function AuthPageContent() {
       if (data?.accessToken) {
         localStorage.setItem('langnghe_access_token', data.accessToken);
       }
+      if (data?.refreshToken) {
+        localStorage.setItem('langnghe_refresh_token', data.refreshToken);
+      }
 
       setMessage('Đăng nhập thành công. Đang chuyển về trang chủ...');
       router.push('/');
