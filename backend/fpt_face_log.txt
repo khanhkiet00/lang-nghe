@@ -1,0 +1,9 @@
+{
+  "code": "200",
+  "data": {
+    "similarity": 100,
+    "isMatch": true,
+    "isBothImgIDCard": false
+  },
+  "message": "request successful."
+}

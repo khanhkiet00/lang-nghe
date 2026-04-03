@@ -10,6 +10,9 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
+  @IsString()
+  displayName: string;
+
   @IsOptional()
   @IsPhoneNumber('VN')
   phone?: string;
@@ -17,4 +20,13 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   password: string;
+
+  @IsString()
+  @MinLength(8)
+  passwordConfirm: string;
+}
+
+export class RequestOtpDto {
+  @IsEmail()
+  email: string;
 }

@@ -9,12 +9,20 @@ import { UploadModule } from './upload/upload.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { EkycModule } from './ekyc/ekyc.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'public'),
+      serveRoot: '/',
     }),
     PrismaModule,
     UsersModule,
@@ -23,6 +31,8 @@ import { ReviewsModule } from './reviews/reviews.module';
     UploadModule,
     ProductsModule,
     ReviewsModule,
+    AnalyticsModule,
+    EkycModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

@@ -1,0 +1,5 @@
+{
+  "errorCode": 3,
+  "errorMessage": "Unable to find ID card in the image",
+  "data": []
+}

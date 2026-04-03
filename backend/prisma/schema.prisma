@@ -70,6 +70,7 @@ model Product {
   isActive        Boolean        @default(true)
   isB2bAvailable  Boolean        @default(false)
   images          ProductImage[]
+  orderItems      OrderItem[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -78,19 +79,36 @@ model Product {
 }
 
 model Order {
-  id             String   @id @default(uuid())
+  id             String      @id @default(uuid())
   buyerId        String
   artisanId      String
-  status         String   @default("pending")
-  paymentStatus  String   @default("pending")
+  status         String      @default("pending")
+  cancelReason   String?
+  paymentStatus  String      @default("pending")
   paymentMethod  String?
   subtotal       Int
-  shippingFee    Int      @default(0)
-  platformFee    Int      @default(0)
-  artisanAmount  Int      @default(0)
+  shippingFee    Int         @default(0)
+  platformFee    Int         @default(0)
+  artisanAmount  Int         @default(0)
   reviews        Review[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  orderItems     OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Profile {

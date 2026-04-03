@@ -7,11 +7,12 @@ import {
   Req,
   Res,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto, RequestOtpDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
@@ -21,10 +22,27 @@ import type { AuthenticatedRequest } from './interfaces/authenticated-request.in
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('request-register-otp')
+  async requestRegisterOtp(@Body() body: RequestOtpDto) {
+    const existing = await this.authService['usersService'].findByEmail(
+      body.email,
+    );
+    if (existing) {
+      throw new BadRequestException('Email đã được sử dụng');
+    }
+    const otp = await this.authService.createOtp(body.email, 'register');
+    return { expiresAt: otp.expiresAt }; // Don't return the otp code to client!
+  }
+
   @Post('register')
   @HttpCode(201)
   async register(@Body() body: RegisterDto) {
-    return this.authService.register(body.email, body.password, body.phone);
+    return this.authService.register(
+      body.email,
+      body.password,
+      body.displayName,
+      body.phone,
+    );
   }
 
   @Post('verify-otp')

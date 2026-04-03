@@ -28,10 +28,22 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string, phone?: string) {
+  async register(
+    email: string,
+    password: string,
+    displayName: string,
+    phone?: string,
+  ) {
     const existing = await this.usersService.findByEmail(email);
     if (existing) {
       throw new BadRequestException('Email đã được sử dụng');
+    }
+
+    const hasVerifiedOtp = await this.hasVerifiedRegisterOtp(email);
+    if (!hasVerifiedOtp) {
+      throw new UnauthorizedException(
+        'Kênh email chưa được xác thực thông qua mã OTP',
+      );
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,12 +55,38 @@ export class AuthService {
       roles: ['buyer'],
     });
 
-    const otp = await this.createOtp(email, 'register');
+    await this.prisma.user.update({
+      where: { email },
+      data: { isEmailVerified: true },
+    });
+
+    try {
+      await this.usersService.updateProfile(user.id, {
+        display_name: displayName,
+      });
+    } catch (err) {
+      // ignore
+    }
+
+    // Auto login
+    const roles = ['buyer'];
+    const payload: JwtPayload = { sub: user.id, email: user.email, roles };
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        token: await bcrypt.hash(refreshToken, 10),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
 
     return {
-      user: { id: user.id, email: user.email },
-      otp: otp.code,
-      expiresAt: otp.expiresAt,
+      accessToken,
+      refreshToken,
+      user: { id: user.id, email: user.email, roles },
     };
   }
 
@@ -110,13 +148,8 @@ export class AuthService {
       data: { used: true },
     });
 
-    if (purpose === 'register') {
-      await this.prisma.user.update({
-        where: { email },
-        data: { isEmailVerified: true },
-      });
-    }
-
+    // Chúng ta không update bảng USERS ở đây vì bước đăng ký User chưa diễn ra
+    // Mảng register sẽ tự dựa vào cột used để cấp quyền `isEmailVerified`
     return true;
   }
 

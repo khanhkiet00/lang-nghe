@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArtisanProfileDto } from './dto/create-artisan-profile.dto';
 
@@ -15,14 +15,12 @@ export class ArtisansService {
   }
 
   async createOrUpdateProfile(userId: string, data: CreateArtisanProfileDto) {
+    // Cho phép trùng tên, nhưng slug URL phải unique: thêm suffix userId nếu trùng
     const slug = this.buildSlug(data.fullName);
-
-    const existingBySlug = await this.prisma.artisanProfile.findUnique({
-      where: { slug },
-    });
-    if (existingBySlug && existingBySlug.userId !== userId) {
-      throw new Error('Slug đã tồn tại, vui lòng đổi tên khác');
-    }
+    const existingBySlug = await this.prisma.artisanProfile.findUnique({ where: { slug } });
+    const finalSlug = existingBySlug && existingBySlug.userId !== userId
+      ? `${slug}-${userId.slice(0, 6)}`
+      : slug;
 
     const existingProfile = await this.prisma.artisanProfile.findUnique({
       where: { userId },
@@ -30,7 +28,7 @@ export class ArtisansService {
 
     const payload = {
       fullName: data.fullName,
-      slug,
+      slug: finalSlug,
       description: data.description,
       expertise: data.expertise,
       location: data.location,
@@ -39,33 +37,39 @@ export class ArtisansService {
     };
 
     if (existingProfile) {
-      return this.prisma.artisanProfile.update({
+      await this.prisma.artisanProfile.update({
         where: { userId },
         data: payload,
       });
+    } else {
+      await this.prisma.artisanProfile.create({
+        data: {
+          userId,
+          ...payload,
+        },
+      });
     }
 
-    return this.prisma.artisanProfile.create({
-      data: {
-        userId,
-        ...payload,
-      },
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { phone: data.phone },
     });
+
+    return payload;
   }
 
   async registerArtisan(userId: string, data: CreateArtisanProfileDto) {
     const slug = this.buildSlug(data.fullName);
 
-    const existingBySlug = await this.prisma.artisanProfile.findUnique({
-      where: { slug },
-    });
-    if (existingBySlug && existingBySlug.userId !== userId) {
-      throw new Error('Slug đã tồn tại, vui lòng đổi tên khác');
-    }
+    // Cho phép trùng tên, nhưng slug URL phải unique: thêm suffix userId nếu trùng
+    const existingBySlug = await this.prisma.artisanProfile.findUnique({ where: { slug } });
+    const finalSlug = existingBySlug && existingBySlug.userId !== userId
+      ? `${slug}-${userId.slice(0, 6)}`
+      : slug;
 
     const payload = {
       fullName: data.fullName,
-      slug,
+      slug: finalSlug,
       description: data.description,
       expertise: data.expertise,
       location: data.location,
@@ -105,6 +109,11 @@ export class ArtisansService {
           data: { userId, role: 'artisan' },
         });
       }
+
+      await tx.user.update({
+        where: { id: userId },
+        data: { phone: data.phone },
+      });
 
       return profile;
     });

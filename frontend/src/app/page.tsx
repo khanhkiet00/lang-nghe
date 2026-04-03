@@ -133,6 +133,8 @@ export default function Home() {
   const [userName, setUserName] = useState('');
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
+  const [isArtisan, setIsArtisan] = useState(false);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroSlides.length);
@@ -187,6 +189,9 @@ export default function Home() {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.email) {
           setUserName(payload.email.split('@')[0]);
+        }
+        if (payload.roles) {
+          setIsArtisan(payload.roles.includes('artisan'));
         }
       } catch (e) {}
     } else {
@@ -311,22 +316,28 @@ export default function Home() {
                 </button>
 
                 <div
-                  className={`absolute right-0 mt-2 flex w-52 flex-col gap-1 rounded-xl border border-black/5 bg-white p-2 shadow-xl transition-all ${
+                  className={`absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-xl border border-black/5 bg-white p-2 shadow-xl transition-all z-50 ${
                     authMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
                   }`}
                 >
                   <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                     Tài khoản
                   </p>
-                  <Link href="/dashboard/nghe-nhan" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
-                    Quản lý xưởng
+                  <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
+                    Bảng điều khiển
                   </Link>
-                  <Link href="/auth" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
-                    Cập nhật đăng nhập
-                  </Link>
+                  {isArtisan ? (
+                    <Link href="/dashboard/nghe-nhan" className="rounded-lg px-3 py-2 text-sm text-[#4A5D23] font-semibold hover:bg-[#F2F4F2]">
+                      Quản lý xưởng
+                    </Link>
+                  ) : (
+                    <Link href="/dashboard/nghe-nhan/dang-ky" className="rounded-lg px-3 py-2 text-sm text-[#C84B31] font-semibold hover:bg-[#F2F4F2]">
+                      ★ Trở thành Nghệ nhân
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
-                    className="rounded-lg px-3 py-2 text-left text-sm font-semibold text-[#C84B31] hover:bg-[#F2F4F2]"
+                    className="rounded-lg px-3 py-2 text-left text-sm font-semibold text-zinc-600 hover:bg-[#F2F4F2]"
                   >
                     Đăng xuất
                   </button>

@@ -1,50 +1,34 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { v2 as cloudinary } from 'cloudinary';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+
+export const storage = diskStorage({
+  destination: './public/uploads',
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  },
+});
 
 @Controller('upload')
 export class UploadController {
-  constructor(private configService: ConfigService) {
-    cloudinary.config({
-      cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.configService.get('CLOUDINARY_API_KEY'),
-      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
-    });
-  }
-
-  @Post('url')
-  getUploadUrl(@Body() body: { folder?: string; publicId?: string }) {
-    const { folder = 'artisans', publicId } = body;
-
-    const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
-    const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET');
-    const apiKey = this.configService.get<string>('CLOUDINARY_API_KEY');
-
-    if (!cloudName || !apiSecret || !apiKey) {
-      throw new Error('Cloudinary configuration missing');
+  @Post('')
+  @UseInterceptors(FileInterceptor('file', { storage }))
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No file uploaded');
     }
 
-    const timestamp = Math.round(new Date().getTime() / 1000);
-
-    const signature = cloudinary.utils.api_sign_request(
-      {
-        timestamp,
-        folder,
-        public_id: publicId,
-        upload_preset: 'artisan_profiles',
-      },
-      apiSecret,
-    );
-
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-
-    return {
-      uploadUrl,
-      timestamp,
-      signature,
-      apiKey,
-      folder,
-      publicId,
-    };
+    // Convert to relative URL from the server root
+    const uploadUrl = `/uploads/${file.filename}`;
+    return { uploadUrl };
   }
 }

@@ -1,0 +1,34 @@
+{
+  "errorCode": 0,
+  "errorMessage": "",
+  "data": [
+    {
+      "id": "051204003247",
+      "id_prob": "98.87",
+      "name": "TRẦN LÊ NGỌC KHANH",
+      "name_prob": "98.35",
+      "dob": "04/01/2004",
+      "dob_prob": "99.11",
+      "sex": "NAM",
+      "sex_prob": "99.40",
+      "nationality": "VIỆT NAM",
+      "nationality_prob": "95.35",
+      "home": "TT., MỘ ĐỨC, MỘ ĐỨC, QUẢNG NGÃI",
+      "home_prob": "99.55",
+      "address": "TT., MỘ ĐỨC, MỘ ĐỨC, QUẢNG NGÃI",
+      "address_prob": "99.79",
+      "doe": "04/01/2029",
+      "doe_prob": "99.72",
+      "overall_score": "98.37",
+      "number_of_name_lines": "1",
+      "address_entities": {
+        "province": "QUẢNG NGÃI",
+        "district": "MỘ ĐỨC",
+        "ward": "MỘ ĐỨC",
+        "street": "TT."
+      },
+      "type_new": "cccd_chip_front",
+      "type": "chip_front"
+    }
+  ]
+}
