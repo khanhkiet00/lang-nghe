@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
@@ -20,6 +20,8 @@ model User {
   artisanProfile  ArtisanProfile?
   profile         Profile?
   products        Product[]
+  buyerOrders     Order[]          @relation("BuyerOrders")
+  artisanOrders   Order[]          @relation("ArtisanOrders")
   reviewsGiven    Review[]         @relation("ReviewsGiven")
   reviewsReceived Review[]         @relation("ReviewsReceived")
   walletBalance   Int              @default(0)
@@ -69,31 +71,48 @@ model Product {
   version         Int            @default(0)
   isActive        Boolean        @default(true)
   isB2bAvailable  Boolean        @default(false)
+  material        String?
+  origin          String?
+  processingTime  Int?
+  isCustomizable  Boolean        @default(false)
+  weight          Int?
+  isOneOfAKind   Boolean        @default(false)
   images          ProductImage[]
   orderItems      OrderItem[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-
   @@index([artisanId])
   @@index([categoryId])
 }
 
 model Order {
-  id             String      @id @default(uuid())
-  buyerId        String
-  artisanId      String
-  status         String      @default("pending")
-  cancelReason   String?
-  paymentStatus  String      @default("pending")
-  paymentMethod  String?
-  subtotal       Int
-  shippingFee    Int         @default(0)
-  platformFee    Int         @default(0)
-  artisanAmount  Int         @default(0)
-  reviews        Review[]
-  orderItems     OrderItem[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id                String      @id @default(uuid())
+  buyerId           String
+  buyer             User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  artisanId         String
+  artisan           User        @relation("ArtisanOrders", fields: [artisanId], references: [id])
+  status            String      @default("pending")
+  cancelReason      String?
+  paymentStatus     String      @default("pending")
+  paymentMethod     String?
+  subtotal          Int
+  shippingFee       Int         @default(0)
+  platformFee       Int         @default(0)
+  artisanAmount     Int         @default(0)
+  shippingAddress   Json?
+  noteFromBuyer     String?
+  noteFromArtisan   String?
+  trackingCode      String?
+  shippingProvider  String?
+  estimatedDelivery DateTime?
+  deliveredAt       DateTime?
+  completedAt       DateTime?
+  reviews           Review[]
+  orderItems        OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  @@index([buyerId])
+  @@index([artisanId])
 }
 
 model OrderItem {
@@ -106,7 +125,6 @@ model OrderItem {
   price     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@index([orderId])
   @@index([productId])
 }
@@ -139,7 +157,6 @@ model ProductImage {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   url       String
   createdAt DateTime @default(now())
-
   @@index([productId])
 }
 
@@ -160,7 +177,6 @@ model Review {
   images               String[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
-
   @@index([reviewee_id])
   @@index([order_id])
   @@unique([order_id, reviewer_id, reviewee_id])

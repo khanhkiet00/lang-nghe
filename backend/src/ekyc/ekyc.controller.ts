@@ -22,7 +22,11 @@ export class EkycController {
     if (!file) {
       throw new BadRequestException('Vui lòng upload ảnh CCCD');
     }
-    return this.ekycService.ocrCccd(file.buffer, file.originalname, file.mimetype);
+    return this.ekycService.ocrCccd(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+    );
   }
 
   @Post('face-match')

@@ -27,7 +27,10 @@ export class EkycService {
     const apiKey = this.getFptApiKey();
 
     const formData = new FormData();
-    formData.append('image', imageBuffer, { filename: fileName, contentType: mimetype });
+    formData.append('image', imageBuffer, {
+      filename: fileName,
+      contentType: mimetype,
+    });
 
     try {
       const response = await axios.post(
@@ -77,8 +80,14 @@ export class EkycService {
     const apiKey = this.getFptApiKey();
 
     const formData = new FormData();
-    formData.append('file[]', file1Buffer, { filename: file1Name, contentType: file1Mime });
-    formData.append('file[]', file2Buffer, { filename: file2Name, contentType: file2Mime });
+    formData.append('file[]', file1Buffer, {
+      filename: file1Name,
+      contentType: file1Mime,
+    });
+    formData.append('file[]', file2Buffer, {
+      filename: file2Name,
+      contentType: file2Mime,
+    });
 
     try {
       const response = await axios.post(

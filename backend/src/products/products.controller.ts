@@ -38,6 +38,22 @@ export class ProductsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('mine')
+  async listMine(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: ListProductsDto,
+  ) {
+    const data = await this.productsService.listMyProducts(req.user.sub, query);
+    return { data };
+  }
+
+  @Get(':id')
+  async getOne(@Param('id', new ParseUUIDPipe()) id: string) {
+    const data = await this.productsService.getProductById(id);
+    return { data };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Req() req: AuthenticatedRequest,

@@ -11,6 +11,8 @@ import { ProductsModule } from './products/products.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { EkycModule } from './ekyc/ekyc.module';
+import { OrdersModule } from './orders/orders.module';
+import { CategoriesModule } from './categories/categories.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -33,6 +35,8 @@ import { join } from 'path';
     ReviewsModule,
     AnalyticsModule,
     EkycModule,
+    OrdersModule,
+    CategoriesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],

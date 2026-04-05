@@ -1,65 +1,38 @@
-// @ts-nocheck
 import { PrismaClient } from '@prisma/client';
-import slugify from 'slugify';
 import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-const categoriesList = [
-  'Gom su', 'Det may', 'May tre dan', 'Do go my nghe', 'Son mai', 'Kim hoan'
-];
-
-// Helper to get random item from array
-const randItem = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
-// Helper to get random number in range
-const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
-
 async function main() {
   console.log('Clearing old mocked data...');
-  // Delete in proper order to respect relations
-  await prisma.review.deleteMany();
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.productImage.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.artisanProfile.deleteMany();
-  await prisma.profile.deleteMany();
-  await prisma.userRole.deleteMany();
-  await prisma.refreshToken.deleteMany();
-  await prisma.otp.deleteMany();
-  await prisma.user.deleteMany();
-
-  console.log('Seeding categories...');
-  const categories = [];
-  for (const name of categoriesList) {
-    const slug = slugify(name, { lower: true, strict: true, trim: true });
-    categories.push(await prisma.category.create({ data: { name, slug } }));
+  try {
+    await prisma.review.deleteMany();
+    await prisma.orderItem.deleteMany();
+    await prisma.order.deleteMany();
+    await prisma.productImage.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.category.deleteMany();
+    await prisma.artisanProfile.deleteMany();
+    await prisma.profile.deleteMany();
+    await prisma.userRole.deleteMany();
+    await prisma.refreshToken.deleteMany();
+    await prisma.otp.deleteMany();
+    await prisma.user.deleteMany();
+  } catch (e) {
+    console.log('Cleanup logic error, ignoring for fresh start...');
   }
 
   const defaultPassword = 'password123';
   const hashedPassword = await hash(defaultPassword, 10);
 
-  console.log('Seeding fake users...');
-  // MOCK BUYER
-  const buyerId = 'b0000000-0000-0000-0000-000000000001';
-  await prisma.user.create({
-    data: {
-      id: buyerId,
-      email: 'buyer@langnghe.com',
-      password: hashedPassword,
-      isEmailVerified: true,
-      roles: { create: { role: 'buyer' } },
-      profile: {
-        create: {
-          display_name: 'Khách hàng Demo',
-          slug: 'khach-hang-demo'
-        }
-      }
-    }
-  });
+  console.log('Seeding categories...');
+  const catGomSu = await prisma.category.create({ data: { name: 'Góm Sứ', slug: 'gom-su' } });
+  const catTraCu = await prisma.category.create({ data: { name: 'Trà Cụ', slug: 'tra-cu' } });
+  const catTrangTri = await prisma.category.create({ data: { name: 'Trang Trí', slug: 'trang-tri' } });
+  const catMayTre = await prisma.category.create({ data: { name: 'Mây Tre Đan', slug: 'may-tre-dan' } });
+  const catDetMay = await prisma.category.create({ data: { name: 'Dệt & Thêu', slug: 'det-theu' } });
 
-  // MOCK ARTISAN
+  console.log('Seeding main Artisan (Bát Tràng Studio)...');
   const artisanId = 'a0000000-0000-0000-0000-000000000001';
   await prisma.user.create({
     data: {
@@ -67,99 +40,222 @@ async function main() {
       email: 'artisan@langnghe.com',
       password: hashedPassword,
       isEmailVerified: true,
-      roles: { create: [{ role: 'buyer' }, { role: 'artisan' }] },
+      roles: { create: [{ role: 'buyer', isActive: true }, { role: 'artisan', isActive: true }] },
       profile: {
         create: {
-          display_name: 'Nghệ nhân Demo',
-          slug: 'nghe-nhan-demo'
+          display_name: 'Bát Tràng Studio',
+          slug: 'bat-trang-studio',
+          village: 'Bát Tràng, Hà Nội'
         }
       },
       artisanProfile: {
         create: {
-          fullName: 'Xưởng Gốm Bát Tràng',
-          slug: 'xuong-gom-bat-trang',
-          expertise: 'Gốm Sứ Truyền Thống',
-          location: 'Bát Tràng, Hà Nội'
+          fullName: 'Nghệ nhân Minh',
+          slug: 'nghe-nhan-minh',
+          expertise: 'Nghệ nhân bậc thầy',
+          location: 'Bát Tràng Hub'
         }
       }
     }
   });
 
-  console.log('Seeding products...');
-  const products = [];
-  for (let i = 1; i <= 20; i++) {
-    const cat = randItem(categories);
-    const price = randInt(1, 20) * 50000; // 50k to 1M
-    products.push(await prisma.product.create({
-      data: {
-        title: `Sản phẩm ${cat.name} ${i}`,
-        slug: slugify(`Sản phẩm ${cat.name} ${i}-${Date.now()}`, { lower: true, strict: true }),
-        categoryId: cat.id,
-        artisanId: artisanId,
-        price_retail: price,
-        price_wholesale: price * 0.8,
-        quantity: randInt(10, 100),
-      }
-    }));
-  }
-
-  console.log('Seeding orders...');
-  const statuses = ['pending', 'delivering', 'completed', 'cancelled'];
-  const cancelReasons = [
-    'Hết hàng', 
-    'Khách hủy đơn', 
-    'Giao hàng thất bại', 
-    'Hư hỏng trong quá trình vận chuyển'
-  ];
-
-  // We want to generate orders starting from 2023-01-01 to 2024-12-31
-  const startDate = new Date('2023-01-01').getTime();
-  const endDate = new Date('2025-01-01').getTime();
-
-  for (let i = 0; i < 150; i++) {
-    const status = i < 120 ? 'completed' : randItem(statuses); // 80% completed
-    const orderDate = new Date(startDate + Math.random() * (endDate - startDate));
-    const cancelReason = status === 'cancelled' ? randItem(cancelReasons) : null;
-    
-    // Pick 1-3 random products
-    const orderItemsData = [];
-    const numItems = randInt(1, 3);
-    let subtotal = 0;
-    
-    for (let j = 0; j < numItems; j++) {
-      const prod = randItem(products);
-      const qty = randInt(1, 5);
-      subtotal += prod.price_retail * qty;
-      orderItemsData.push({
-        productId: prod.id,
-        quantity: qty,
-        price: prod.price_retail,
-        createdAt: orderDate,
-        updatedAt: orderDate
-      });
+  console.log('Seeding Buyer Users...');
+  const buyer1Id = 'b0000000-0000-0000-0000-000000000001';
+  await prisma.user.create({
+    data: {
+      id: buyer1Id,
+      email: 'minhanh@gmail.com',
+      password: hashedPassword,
+      isEmailVerified: true,
+      roles: { create: [{ role: 'buyer', isActive: true }] },
+      profile: { create: { display_name: 'Nguyễn Minh Anh', slug: 'nguyen-minh-anh', village: 'Hà Nội' } }
     }
+  });
 
-    await prisma.order.create({
-      data: {
-        buyerId,
-        artisanId,
-        status,
-        cancelReason,
-        paymentStatus: status === 'completed' ? 'paid' : 'pending',
-        subtotal,
-        shippingFee: 30000,
-        platformFee: subtotal * 0.05,
-        artisanAmount: subtotal * 0.95,
-        createdAt: orderDate,
-        updatedAt: orderDate,
-        orderItems: {
-          create: orderItemsData
-        }
-      }
-    });
-  }
+  const buyer2Id = 'b0000000-0000-0000-0000-000000000002';
+  await prisma.user.create({
+    data: {
+      id: buyer2Id,
+      email: 'quockhanh@gmail.com',
+      password: hashedPassword,
+      isEmailVerified: true,
+      roles: { create: [{ role: 'buyer', isActive: true }] },
+      profile: { create: { display_name: 'Lê Quốc Khánh', slug: 'le-quoc-khanh', village: 'Đà Nẵng' } }
+    }
+  });
 
-  console.log('✅ Seeding completely finished!');
+  const buyer3Id = 'b0000000-0000-0000-0000-000000000003';
+  await prisma.user.create({
+    data: {
+      id: buyer3Id,
+      email: 'thihoa@gmail.com',
+      password: hashedPassword,
+      isEmailVerified: true,
+      roles: { create: [{ role: 'buyer', isActive: true }] },
+      profile: { create: { display_name: 'Trần Thị Hoa', slug: 'tran-thi-hoa', village: 'TP. Hồ Chí Minh' } }
+    }
+  });
+
+  console.log('Seeding real products...');
+  const prod1 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catGomSu.id,
+      title: 'Bình gốm hoa văn cổ',
+      slug: 'binh-gom-hoa-van-co-bt-001',
+      price_retail: 1250000,
+      price_wholesale: 950000,
+      quantity: 45,
+      material: 'Gốm đất nun',
+      origin: 'Bát Tràng',
+      processingTime: 7,
+      isActive: true,
+    }
+  });
+
+  const prod2 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catTraCu.id,
+      title: 'Bộ ấm chén Men Lam',
+      slug: 'bo-am-chen-men-lam-bt-042',
+      price_retail: 3500000,
+      price_wholesale: 2800000,
+      quantity: 3,
+      material: 'Sứ men lam',
+      origin: 'Bát Tràng',
+      processingTime: 14,
+      isActive: true,
+    }
+  });
+
+  const prod3 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catTrangTri.id,
+      title: 'Đèn gốm trang trí',
+      slug: 'den-gom-trang-tri-bt-118',
+      price_retail: 890000,
+      price_wholesale: 700000,
+      quantity: 12,
+      material: 'Gốm xuyên sáng',
+      origin: 'Bát Tràng',
+      processingTime: 5,
+      isActive: true,
+    }
+  });
+
+  const prod4 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catTraCu.id,
+      title: 'Bình gốm mộc trà cao cấp',
+      slug: 'binh-gom-moc-tra-cao-cap',
+      price_retail: 1250000,
+      price_wholesale: 1000000,
+      quantity: 10,
+      material: 'Gốm nung củi',
+      origin: 'Bát Tràng',
+      processingTime: 10,
+      isActive: true,
+    }
+  });
+
+  const prod5 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catMayTre.id,
+      title: 'Bộ giỏ mây đan thủ công',
+      slug: 'bo-gio-may-dan-thu-cong',
+      price_retail: 420000,
+      price_wholesale: 350000,
+      quantity: 25,
+      material: 'Mây tre tự nhiên',
+      origin: 'Chương Mỹ',
+      processingTime: 3,
+      isActive: true,
+    }
+  });
+
+  const prod6 = await prisma.product.create({
+    data: {
+      artisanId,
+      categoryId: catDetMay.id,
+      title: 'Khăn lụa tơ tằm vẽ tay',
+      slug: 'khan-lua-to-tam-ve-tay',
+      price_retail: 700000,
+      price_wholesale: 550000,
+      quantity: 15,
+      material: 'Lụa tơ tằm',
+      origin: 'Vạn Phúc',
+      processingTime: 4,
+      isActive: true,
+    }
+  });
+
+  console.log('Seeding specific Orders...');
+  // DH-10294
+  const order1 = await prisma.order.create({
+    data: {
+      id: 'order-10294',
+      buyerId: buyer1Id,
+      artisanId,
+      status: 'pending',
+      paymentMethod: 'cod',
+      subtotal: 1250000,
+      shippingFee: 30000,
+      platformFee: 62500,
+      artisanAmount: 1187500,
+      shippingAddress: { name: 'Nguyễn Minh Anh', phone: '0912345678', address: 'Hoàn Kiếm, Hà Nội' },
+      createdAt: new Date('2023-10-14T09:45:00Z'),
+    }
+  });
+  await prisma.orderItem.create({
+    data: { orderId: order1.id, productId: prod4.id, quantity: 1, price: 1250000 }
+  });
+
+  // DH-10291
+  const order2 = await prisma.order.create({
+    data: {
+      id: 'order-10291',
+      buyerId: buyer2Id,
+      artisanId,
+      status: 'processing',
+      paymentMethod: 'cod',
+      subtotal: 840000,
+      shippingFee: 30000,
+      platformFee: 42000,
+      artisanAmount: 798000,
+      shippingAddress: { name: 'Lê Quốc Khánh', phone: '0988776655', address: 'Hải Châu, Đà Nẵng' },
+      createdAt: new Date('2023-10-13T15:20:00Z'),
+    }
+  });
+  await prisma.orderItem.create({
+    data: { orderId: order2.id, productId: prod5.id, quantity: 2, price: 420000 }
+  });
+
+  // DH-10285
+  const order3 = await prisma.order.create({
+    data: {
+      id: 'order-10285',
+      buyerId: buyer3Id,
+      artisanId,
+      status: 'shipped',
+      paymentMethod: 'bank_transfer',
+      paymentStatus: 'paid',
+      subtotal: 2100000,
+      shippingFee: 0,
+      platformFee: 105000,
+      artisanAmount: 1995000,
+      shippingAddress: { name: 'Trần Thị Hoa', phone: '0901234567', address: 'Quận 1, TP. Hồ Chí Minh' },
+      createdAt: new Date('2023-10-12T11:12:00Z'),
+    }
+  });
+  await prisma.orderItem.create({
+    data: { orderId: order3.id, productId: prod6.id, quantity: 3, price: 700000 }
+  });
+
+  console.log('Seeding finished!');
 }
 
 main()

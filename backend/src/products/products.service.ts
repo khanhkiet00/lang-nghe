@@ -60,10 +60,14 @@ export class ProductsService {
         price_retail: dto.price_retail,
         price_wholesale: dto.price_wholesale,
         quantity: dto.quantity,
+        material: dto.material,
+        origin: dto.origin,
+        processingTime: dto.processingTime,
+        isCustomizable: dto.isCustomizable,
+        weight: dto.weight,
+        isOneOfAKind: dto.isOneOfAKind,
         images: dto.images?.length
-          ? {
-              create: dto.images.map((url) => ({ url })),
-            }
+          ? { create: dto.images.map((url) => ({ url })) }
           : undefined,
       },
       include: {
@@ -72,6 +76,55 @@ export class ProductsService {
       },
     });
 
+    return product;
+  }
+
+  async listMyProducts(userId: string, query: ListProductsDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const [total, items] = await Promise.all([
+      this.prisma.product.count({ where: { artisanId: userId } }),
+      this.prisma.product.findMany({
+        where: { artisanId: userId },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          images: { select: { id: true, url: true } },
+        },
+      }),
+    ]);
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    };
+  }
+
+  async getProductById(productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        images: { select: { id: true, url: true } },
+        artisan: {
+          select: {
+            id: true,
+            artisanProfile: {
+              select: { fullName: true, slug: true, avatarUrl: true },
+            },
+          },
+        },
+      },
+    });
+    if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
     return product;
   }
 
@@ -168,6 +221,13 @@ export class ProductsService {
           price_retail: dto.price_retail,
           price_wholesale: dto.price_wholesale,
           quantity: dto.quantity,
+          isActive: dto.isActive,
+          material: dto.material,
+          origin: dto.origin,
+          processingTime: dto.processingTime,
+          isCustomizable: dto.isCustomizable,
+          weight: dto.weight,
+          isOneOfAKind: dto.isOneOfAKind,
           version: { increment: 1 },
           images:
             dto.images !== undefined

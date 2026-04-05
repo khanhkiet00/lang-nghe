@@ -2,10 +2,10 @@ import {
   Controller,
   Post,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 
@@ -14,21 +14,25 @@ export const storage = diskStorage({
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
-    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+    cb(null, `${file.originalname.split('.')[0]}-${uniqueSuffix}${ext}`);
   },
 });
 
 @Controller('upload')
 export class UploadController {
   @Post('')
-  @UseInterceptors(FileInterceptor('file', { storage }))
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('No file uploaded');
+  @UseInterceptors(
+    FilesInterceptor('files', 10, {
+      storage,
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    }),
+  )
+  uploadFiles(@UploadedFiles() files: Express.Multer.File[]) {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files uploaded');
     }
 
-    // Convert to relative URL from the server root
-    const uploadUrl = `/uploads/${file.filename}`;
-    return { uploadUrl };
+    const urls = files.map((file) => `/uploads/${file.filename}`);
+    return { urls };
   }
 }

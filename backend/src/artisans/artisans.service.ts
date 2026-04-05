@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArtisanProfileDto } from './dto/create-artisan-profile.dto';
 
@@ -17,10 +21,13 @@ export class ArtisansService {
   async createOrUpdateProfile(userId: string, data: CreateArtisanProfileDto) {
     // Cho phép trùng tên, nhưng slug URL phải unique: thêm suffix userId nếu trùng
     const slug = this.buildSlug(data.fullName);
-    const existingBySlug = await this.prisma.artisanProfile.findUnique({ where: { slug } });
-    const finalSlug = existingBySlug && existingBySlug.userId !== userId
-      ? `${slug}-${userId.slice(0, 6)}`
-      : slug;
+    const existingBySlug = await this.prisma.artisanProfile.findUnique({
+      where: { slug },
+    });
+    const finalSlug =
+      existingBySlug && existingBySlug.userId !== userId
+        ? `${slug}-${userId.slice(0, 6)}`
+        : slug;
 
     const existingProfile = await this.prisma.artisanProfile.findUnique({
       where: { userId },
@@ -62,10 +69,13 @@ export class ArtisansService {
     const slug = this.buildSlug(data.fullName);
 
     // Cho phép trùng tên, nhưng slug URL phải unique: thêm suffix userId nếu trùng
-    const existingBySlug = await this.prisma.artisanProfile.findUnique({ where: { slug } });
-    const finalSlug = existingBySlug && existingBySlug.userId !== userId
-      ? `${slug}-${userId.slice(0, 6)}`
-      : slug;
+    const existingBySlug = await this.prisma.artisanProfile.findUnique({
+      where: { slug },
+    });
+    const finalSlug =
+      existingBySlug && existingBySlug.userId !== userId
+        ? `${slug}-${userId.slice(0, 6)}`
+        : slug;
 
     const payload = {
       fullName: data.fullName,
@@ -78,7 +88,7 @@ export class ArtisansService {
       isVerified: true, // Auto-accept as per user request
     };
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: any) => {
       // 1. Create or Update Artisan Profile
       const existingProfile = await tx.artisanProfile.findUnique({
         where: { userId },
@@ -100,17 +110,17 @@ export class ArtisansService {
       }
 
       // 2. Ensure user has 'artisan' role
-      const existingRole = await tx.userRole.findFirst({
+      const existingRole = await (tx as any).userRole.findFirst({
         where: { userId, role: 'artisan' },
       });
 
       if (!existingRole) {
-        await tx.userRole.create({
+        await (tx as any).userRole.create({
           data: { userId, role: 'artisan' },
         });
       }
 
-      await tx.user.update({
+      await (tx as any).user.update({
         where: { id: userId },
         data: { phone: data.phone },
       });

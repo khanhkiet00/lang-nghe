@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-error": "#ffffff",
+                    "on-background": "#1a1c1c",
+                    "on-primary-fixed": "#3e0500",
+                    "surface-variant": "#e2e2e2",
+                    "inverse-on-surface": "#f0f1f1",
+                    "outline-variant": "#e0bfb9",
+                    "on-error-container": "#93000a",
+                    "tertiary": "#00647d",
+                    "on-surface": "#1a1c1c",
+                    "surface-container-high": "#e8e8e8",
+                    "on-secondary-container": "#576b2f",
+                    "secondary-fixed": "#d4eca2",
+                    "tertiary-fixed-dim": "#77d2f3",
+                    "tertiary-container": "#007f9d",
+                    "outline": "#8c716b",
+                    "secondary-fixed-dim": "#b8cf88",
+                    "on-tertiary-container": "#fafdff",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed": "#141f00",
+                    "surface-tint": "#aa361e",
+                    "background": "#f9f9f9",
+                    "on-primary-container": "#fffbff",
+                    "secondary-container": "#d4eca2",
+                    "secondary": "#52652a",
+                    "primary-container": "#c84b31",
+                    "surface-container-highest": "#e2e2e2",
+                    "surface-bright": "#f9f9f9",
+                    "primary-fixed": "#ffdad3",
+                    "on-surface-variant": "#58413c",
+                    "surface-dim": "#dadada",
+                    "tertiary-fixed": "#b8eaff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#001f28",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#891e07",
+                    "surface-container": "#eeeeee",
+                    "primary-fixed-dim": "#ffb4a4",
+                    "inverse-primary": "#ffb4a4",
+                    "primary": "#a6331b",
+                    "on-secondary": "#ffffff",
+                    "inverse-surface": "#2f3131",
+                    "on-tertiary-fixed-variant": "#004d61",
+                    "surface-container-low": "#f3f3f3",
+                    "surface": "#f9f9f9",
+                    "on-secondary-fixed-variant": "#3b4d14",
+                    "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="h-screen w-72 border-r border-[#1a1c1c]/5 bg-[#f5f2ee] flex flex-col p-6 sticky top-0 shrink-0">
+<div class="font-black text-[#c84b31] text-xl mb-8">Làng Nghề</div>
+<div class="flex items-center gap-3 mb-8 px-2">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a master vietnamese artisan in a sunny workshop with clay dust on hands" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr8NcX22hUxouiIPhohrPP-wpIymghRqBSZ2muj701DglWv-cJaHLso-OZxCS7x3Gjv5-EU-tvcNHJuSkHWCN0EttaE9LKZBQVUYzXeto0oazuKlVHBHdBHhhEsGyPV4tI_9f6PDhQfbCj2MXMRmzLhsiLOSnVtDM0Um3maawhI49PAbHMo_ehS7fo8buWgeZoRXQ59TtdaN7Sn1A2qmJCNP7-2t_QseeaqoKfA922ShrSR5lqGfTgrcZ5i0q7bsdbD97ay3FXyWt0"/>
+</div>
+<div>
+<p class="font-manrope text-sm font-bold text-on-surface">Bát Tràng Studio</p>
+<p class="font-manrope text-[10px] uppercase tracking-wider text-on-surface-variant">Nghệ nhân bậc thầy</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#1a1c1c]/70 hover:bg-[#1a1c1c]/5 hover:translate-x-1 transition-transform font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Tổng quan
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1a1c1c]/70 hover:bg-[#1a1c1c]/5 hover:translate-x-1 transition-transform font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+                Kho hàng
+            </a>
+<!-- Active State: Đơn hàng -->
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-[#c84b31] shadow-sm rounded-xl font-manrope text-sm font-medium scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+                Đơn hàng
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1a1c1c]/70 hover:bg-[#1a1c1c]/5 hover:translate-x-1 transition-transform font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+                Phân tích
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1a1c1c]/70 hover:bg-[#1a1c1c]/5 hover:translate-x-1 transition-transform font-manrope text-sm font-medium" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                Cài đặt
+            </a>
+</nav>
+<button class="mt-auto w-full py-4 bg-primary-container text-on-primary-container rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:opacity-90 active:scale-95">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+            Thêm sản phẩm mới
+        </button>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-h-screen">
+<!-- Header -->
+<header class="px-10 pt-10 pb-6 flex justify-between items-end">
+<div>
+<h1 class="font-headline font-extrabold text-4xl tracking-tighter text-on-surface">Quản lý Đơn hàng</h1>
+<p class="text-on-surface-variant mt-2 font-medium">Theo dõi và xử lý các đơn đặt hàng thủ công từ làng nghề.</p>
+</div>
+<div class="flex gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-transparent border-b-2 border-outline-variant/30 focus:border-primary outline-none font-manrope text-sm transition-colors w-64" placeholder="Tìm kiếm đơn hàng..." type="text"/>
+</div>
+</div>
+</header>
+<!-- Status Tabs (Navigation) -->
+<div class="px-10 mb-8 overflow-x-auto">
+<div class="flex gap-8 border-b border-outline-variant/20">
+<button class="pb-4 text-[#c84b31] font-bold border-b-2 border-[#c84b31] text-sm uppercase tracking-widest whitespace-nowrap">Tất cả (24)</button>
+<button class="pb-4 text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm uppercase tracking-widest whitespace-nowrap">Chờ xác nhận (5)</button>
+<button class="pb-4 text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm uppercase tracking-widest whitespace-nowrap">Đang xử lý (8)</button>
+<button class="pb-4 text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm uppercase tracking-widest whitespace-nowrap">Đã giao hàng (12)</button>
+<button class="pb-4 text-on-surface-variant hover:text-primary transition-colors font-semibold text-sm uppercase tracking-widest whitespace-nowrap">Hoàn thành (114)</button>
+</div>
+</div>
+<!-- Orders List -->
+<div class="px-10 pb-20 space-y-4">
+<!-- Order Card 1 (Pending) -->
+<div class="bg-surface-container-lowest rounded-xl p-6 flex flex-col gap-6 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.04)] hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold text-[10px] tracking-widest uppercase">#DH-10294</div>
+<span class="text-on-surface-variant text-sm font-medium">14 Tháng 10, 2023 • 09:45</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-full font-bold text-[10px] tracking-widest uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        Chờ xác nhận
+                    </div>
+</div>
+<div class="flex items-center gap-6">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="minimalist handcrafted ceramic tea pot with wooden handle on a clean limestone background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBez6WhnRzH1aN_ufIq0Sl269zRBNk-7W_k3msGHc_2Bdjz5cOgPhkdRKrjF3X_oiZDYFFxfMTBQu90SEGjGWUQbwKkOqq4DX4hcjerElL_cu37WNtunIxtXTyhBW1UqSu7bxqb7-YcVBS1nfrR9M-PGcTKNoFLH8Y8SsWABBTQm4lHQH1ThivLcQImJL71bb_GggD2cTolOgUaMR8WAqg8l9lC9KEtHjP1qWEBzphJzCCfpKP2IA-cNCC-sW7M8-16qnfD4cVN3UAX"/>
+</div>
+<div class="flex-1 grid grid-cols-3 gap-8">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Khách hàng</p>
+<p class="font-bold text-on-surface">Nguyễn Minh Anh</p>
+<p class="text-sm text-on-surface-variant">Hà Nội, Việt Nam</p>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Sản phẩm</p>
+<p class="font-bold text-on-surface truncate">Bình gốm mộc trà cao cấp</p>
+<p class="text-sm text-on-surface-variant">Số lượng: 01</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Tổng cộng</p>
+<p class="font-bold text-xl text-[#c84b31]">1.250.000₫</p>
+</div>
+</div>
+</div>
+<div class="flex justify-end gap-3 pt-4 border-t border-outline-variant/10">
+<button class="px-5 py-2 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors">Chi tiết</button>
+<button class="px-5 py-2 bg-surface-container-highest text-on-surface font-bold text-sm rounded-lg hover:opacity-80 transition-opacity">In vận đơn</button>
+<button class="px-6 py-2 bg-primary-container text-on-primary-container font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity">Xác nhận đơn hàng</button>
+</div>
+</div>
+<!-- Order Card 2 (Processing) -->
+<div class="bg-surface-container-lowest rounded-xl p-6 flex flex-col gap-6 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.04)] hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold text-[10px] tracking-widest uppercase">#DH-10291</div>
+<span class="text-on-surface-variant text-sm font-medium">13 Tháng 10, 2023 • 15:20</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full font-bold text-[10px] tracking-widest uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        Đang xử lý
+                    </div>
+</div>
+<div class="flex items-center gap-6">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="artisan handwoven bamboo basket set with intricate patterns and natural earthy tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKRsKPUNcSx3V2f1oIaKYyNS0Uq6ztfFhijV-U_mUto-ol-JFvIAt-QssPX2hdZyMsf_S69EgTqcJVPkbJVZwbffAlVBDRxVJI6UcXCSSVitogxDAuyon0x7-5AXqrm5THz-t4ngwqFt1tuwSTiAo5N_ipT_3r4ljPQgcIqejCZmYmS56NrpLNuldHlzVSNKMBw1Nwm3ZwRk6AV-1una5dX2YhufzJBw2j5TXqDoa3-1isGxQQ3kQh3G2LJt8DjLG3EVVb_SLXaeW9"/>
+</div>
+<div class="flex-1 grid grid-cols-3 gap-8">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Khách hàng</p>
+<p class="font-bold text-on-surface">Lê Quốc Khánh</p>
+<p class="text-sm text-on-surface-variant">Đà Nẵng, Việt Nam</p>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Sản phẩm</p>
+<p class="font-bold text-on-surface truncate">Bộ giỏ mây đan thủ công</p>
+<p class="text-sm text-on-surface-variant">Số lượng: 02</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Tổng cộng</p>
+<p class="font-bold text-xl text-[#c84b31]">840.000₫</p>
+</div>
+</div>
+</div>
+<div class="flex justify-end gap-3 pt-4 border-t border-outline-variant/10">
+<button class="px-5 py-2 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors">Chi tiết</button>
+<button class="px-6 py-2 bg-surface-container-highest text-on-surface font-bold text-sm rounded-lg hover:opacity-80 transition-opacity">In vận đơn</button>
+<button class="px-6 py-2 border border-outline-variant/30 text-on-surface font-bold text-sm rounded-lg hover:bg-surface-container-low transition-colors">Cập nhật vận chuyển</button>
+</div>
+</div>
+<!-- Order Card 3 (Delivered) -->
+<div class="bg-surface-container-lowest rounded-xl p-6 flex flex-col gap-6 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.04)] hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] transition-all duration-300">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="px-3 py-1 bg-primary/10 text-primary rounded-full font-bold text-[10px] tracking-widest uppercase">#DH-10285</div>
+<span class="text-on-surface-variant text-sm font-medium">12 Tháng 10, 2023 • 11:12</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-secondary-container text-secondary rounded-full font-bold text-[10px] tracking-widest uppercase">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                        Đã giao hàng
+                    </div>
+</div>
+<div class="flex items-center gap-6">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="exquisite hand-painted silk scarf with traditional vietnamese floral motifs in vibrant indigo and gold" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmA7OgzFS18CpvC62yuuiCJYfSHUjk00umDVgniHoKbK2C-0JZhhz7Vcr4CsiHKVSke29akZEUKCLc7psNBKTbXLNEX1wGnlSR7mqfe5eCyKDf166X2V3TyXhsvuiWpXTUN5gL2nWKa9wDNMxKnwDqR-YZI-hNRTHKoHU5Smel0DtzQK7mRMgnubn00vr_G3dOFDwvdRArdqnokVOPJQbwxQQoF40-sIsCBgQ68pAHLFngQPuqA5IFWDf-qNapG9hfFpEXriAWpCXv"/>
+</div>
+<div class="flex-1 grid grid-cols-3 gap-8">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Khách hàng</p>
+<p class="font-bold text-on-surface">Trần Thị Hoa</p>
+<p class="text-sm text-on-surface-variant">TP. Hồ Chí Minh</p>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Sản phẩm</p>
+<p class="font-bold text-on-surface truncate">Khăn lụa tơ tằm vẽ tay</p>
+<p class="text-sm text-on-surface-variant">Số lượng: 03</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest text-outline mb-1">Tổng cộng</p>
+<p class="font-bold text-xl text-[#c84b31]">2.100.000₫</p>
+</div>
+</div>
+</div>
+<div class="flex justify-end gap-3 pt-4 border-t border-outline-variant/10">
+<button class="px-5 py-2 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors">Xem hành trình</button>
+<button class="px-6 py-2 bg-surface-container-highest text-on-surface font-bold text-sm rounded-lg hover:opacity-80 transition-opacity">Hóa đơn điện tử</button>
+</div>
+</div>
+<!-- Empty State Loader -->
+<div class="flex flex-col items-center justify-center py-12 opacity-40">
+<span class="material-symbols-outlined text-6xl mb-4" data-icon="auto_stories">auto_stories</span>
+<p class="font-manrope text-sm font-medium">Đang tải thêm đơn hàng cũ hơn...</p>
+</div>
+</div>
+</main>
+<!-- FAB for quick action -->
+<div class="fixed bottom-10 right-10 flex flex-col gap-4">
+<button class="w-16 h-16 bg-[#c84b31] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform active:scale-95 group relative">
+<span class="material-symbols-outlined text-3xl" data-icon="add" style="font-variation-settings: 'wght' 600;">add</span>
+<span class="absolute right-20 bg-on-surface text-surface px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">Tạo đơn trực tiếp</span>
+</button>
+</div>
+</body></html>
