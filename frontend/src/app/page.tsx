@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/ProductCard';
+import { resolveImageUrl } from '@/lib/images';
+import { CartNavIcon } from '@/components/CartNavIcon';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -27,12 +29,26 @@ type ProductImage = {
 type ProductItem = {
   id: string;
   title: string;
+  slug?: string;
   description?: string | null;
   price_retail: number;
   category: ProductCategory;
   images: ProductImage[];
+  reviewSummary?: {
+    total: number;
+    averageRating: number;
+  };
   artisan?: {
     id: string;
+    reputationScore?: number;
+    _count?: {
+      followers?: number;
+    };
+    artisanProfile?: {
+      fullName?: string | null;
+      slug?: string | null;
+      avatarUrl?: string | null;
+    } | null;
     profile?: {
       display_name?: string | null;
       slug?: string | null;
@@ -65,69 +81,15 @@ const heroSlides: HeroSlide[] = [
 const fallbackImage =
   'https://images.unsplash.com/photo-1603321544554-f416a9a11fcf?q=80&w=1200&auto=format&fit=crop';
 
-const mockProducts: ProductItem[] = [
-  {
-    id: 'mock-1',
-    title: 'Bình Gốm Men Lam',
-    price_retail: 850000,
-    category: { id: 'cat-1', name: 'Gốm sứ truyền thống', slug: 'gom-su' },
-    images: [
-      {
-        id: 'img-1',
-        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAux-H9oO-sEYOK8uYpbgQLa57ZZAgEHCYNzE1BbxvWW1-GtsHkpbMLR9BvOBj6cS8y10WXiuuaJxvENt1GmXl0QlJbTCy-T-ULeRP8r9gQU8UkuIWYQjJ_zCPOCtZbIq6IBUfP1KoCgIlcW618VmrsetO--Ppt9bPy56x8wFJ1k54Y35VUL9s5mohV-5j7jhhASFd5c_vpPSXWQe4JXbxGWxZk1fry2mvGIlD65ItrBdZHzh0QH6ijTT-ROc5V79RE8sWEzTH3R4GH',
-      },
-    ],
-    artisan: { id: 'ar-1', profile: { display_name: 'Nghệ nhân Nguyễn Văn An' } },
-  },
-  {
-    id: 'mock-2',
-    title: 'Giỏ Mây Đan Thủ Công',
-    price_retail: 420000,
-    category: { id: 'cat-2', name: 'Mây tre đan', slug: 'may-tre-dan' },
-    images: [
-      {
-        id: 'img-2',
-        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGpjmxOSKP99JlCyJ8X5HjSXIZbhfnzo1YQaHLBW8eWG8Lg-3FSQj1dZoUJm2Fx-d_zgvgaBxDameAcuhmkpT9N77Jf7F_wRriF3Hf8cPz3ZLYD4Chf4tfRlHF11nqThK4Mla7d2ruzsYHx2uXrbzCrmfYvnfkj4rQoJGP4gwPNUC7REsz5-SQhOt7GCSa3m3Ll9GmmInqSFlFgHf3y6TWxOj-IoggADf43E9wNj9DfyuFxU7IOQP0yNpX7DvBca4Z34_ywxZL_FLM',
-      },
-    ],
-    artisan: { id: 'ar-2', profile: { display_name: 'Nghệ nhân Trần Thị Lan' } },
-  },
-  {
-    id: 'mock-3',
-    title: 'Khăn Chàm Thêu Tay',
-    price_retail: 590000,
-    category: { id: 'cat-3', name: 'Thổ cẩm', slug: 'tho-cam' },
-    images: [
-      {
-        id: 'img-3',
-        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAm2dgQ1mfysaV8ghDCo6q6ghgVhFhjPAiXwfRGrHuvbCma5klojycjdHcfbvH85wDuWzzPw1MIDrsbfD2Oe4ZMLrj4_VL1IcRmxvCUmfuLIYOEpN00q6e8OfrIaB3NiVGCcVNLZXwL0meWgrQpXuJKLTytARcWCf93s1BOkzkHbcb90iTJJhPc9jrGhvMYFUgmQyI8a4uo0fWN8iPyZNWAZQbC9IUG7pO0EO_DCx6Wl3FAVdqnqDGj-fNlXgdS8DANMGVYAQqNqbxZ',
-      },
-    ],
-    artisan: { id: 'ar-3', profile: { display_name: "H'Mông Collective" } },
-  },
-  {
-    id: 'mock-4',
-    title: 'Khay Gỗ Trắc Chạm',
-    price_retail: 1250000,
-    category: { id: 'cat-4', name: 'Đồ gỗ mỹ nghệ', slug: 'do-go' },
-    images: [
-      {
-        id: 'img-4',
-        url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA-It4Q7KrZ4NPoP4zeMb5icg2CMPwH8hX-vhPyHmgMZo_IMjDdv6Qo9BwwjKXhH5ysLrux3Eodd2JAUauK9RbJ2uWRVdDwazhv70uALsgBiK88lezArcJ2av9-ZZpl84wUqj1_n3S-tV4kiWw29LpClHSYKffEuNSGUeXike-18Yka_jMkTZHKBk28PKXGKiAmIbsWW_wRly0mKTnrzNKzCmT2PHfuWkYx6tUDx8eyjXSb4PxribQvLjsXPf_QYhIzk6P0U486FUho',
-      },
-    ],
-    artisan: { id: 'ar-4', profile: { display_name: 'Nghệ nhân Phạm Hùng' } },
-  },
-];
-
 function formatVnd(value: number): string {
   return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
 }
 
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [allProducts, setAllProducts] = useState<ProductItem[]>(mockProducts);
+  const [allProducts, setAllProducts] = useState<ProductItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productError, setProductError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategorySlug, setActiveCategorySlug] = useState('all');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -159,11 +121,12 @@ export default function Home() {
       };
 
       const items = json.data?.items ?? [];
+      setProductError('');
       
       if (isAppend) {
         setAllProducts(prev => [...prev, ...items]);
       } else {
-        setAllProducts(items.length > 0 ? items : mockProducts);
+        setAllProducts(items);
       }
 
       // Simple check for hasMore
@@ -174,8 +137,9 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Failed to load products:', error);
+      setProductError('Chưa kết nối được dữ liệu sản phẩm thật. Vui lòng kiểm tra backend.');
       if (!isAppend) {
-        setAllProducts(mockProducts);
+        setAllProducts([]);
       }
     } finally {
       setLoadingProducts(false);
@@ -255,6 +219,24 @@ export default function Home() {
       product.title.toLowerCase().includes(searchTerm.toLowerCase());
     return categoryMatch && searchMatch;
   });
+  const featuredProducts = [...allProducts]
+    .sort((a, b) => {
+      const scoreB =
+        (b.reviewSummary?.averageRating ?? 0) * 100 +
+        (b.reviewSummary?.total ?? 0) * 5 +
+        (b.artisan?._count?.followers ?? 0);
+      const scoreA =
+        (a.reviewSummary?.averageRating ?? 0) * 100 +
+        (a.reviewSummary?.total ?? 0) * 5 +
+        (a.artisan?._count?.followers ?? 0);
+      return scoreB - scoreA;
+    })
+    .slice(0, 3);
+
+  const getArtisanName = (product: ProductItem) =>
+    product.artisan?.artisanProfile?.fullName ||
+    product.artisan?.profile?.display_name ||
+    'Nghệ nhân làng nghề';
 
   return (
     <div className="bg-[#F9F9F7] text-[#1A1C1C]">
@@ -292,16 +274,7 @@ export default function Home() {
               </a>
             </div>
 
-            <button className="group relative text-zinc-600 hover:text-[#C84B31]">
-              <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" stroke="currentColor" strokeWidth="2">
-                <path d="M3 4h2l2.5 11h10L21 7H8" />
-                <circle cx="10" cy="19" r="1.5" />
-                <circle cx="18" cy="19" r="1.5" />
-              </svg>
-              <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#C84B31] text-[10px] font-bold text-white">
-                2
-              </span>
-            </button>
+            <CartNavIcon />
 
             {!isLoggedIn ? (
               <div className="flex items-center gap-2">
@@ -436,68 +409,89 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
-            <div className="group relative md:col-span-2 md:row-span-2">
-              <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:shadow-2xl">
-                <div className="relative aspect-[4/5] flex-grow overflow-hidden md:aspect-auto">
-                  <img
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxfl60pDajFEbRgqYYf31z6Sv4_1uBTYK2q7BYr8ZLziNo84r0_XBPJL7KO_IHG-2dIuTu11L1XmM7Svf1PwXZSRNcgkRmleN0eZxSpFFT05EUzSydvJeb-7xJozSAmz7OvknsEUTQd2jst6Stt6NGYqqR2BuVYG27OhYS8v8J8Y7bEnMy_v60ECOdybzFHkkXEuv5lzZlDXUNHJfQjFhRmhCKmQgrCf9Yb2ul84yaJdKNeIRMKWis3eqefOkjIxeMZPa_PwYerLhq"
-                    alt="Bình Gốm"
-                  />
-                  <div className="absolute left-6 top-6 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#C84B31] shadow-sm backdrop-blur-md">
-                    NỔI BẬT
-                  </div>
-                </div>
-                <div className="bg-white p-10">
-                  <div className="mb-3 flex items-center gap-1">
-                    <span className="text-amber-500">★★★★★</span>
-                    <span className="ml-2 text-xs text-zinc-400">(128 đánh giá)</span>
-                  </div>
-                  <h3 className="mb-2 text-3xl font-bold">Bình Gốm Men Đất Rippled</h3>
-                  <p className="mb-6 italic text-zinc-500">Nghệ nhân Minh Đức • Làng Gốm Bát Tràng</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-extrabold text-[#C84B31]">2.850.000đ</span>
-                    <button className="rounded-xl bg-[#C84B31] px-8 py-3 font-bold text-white transition-colors hover:bg-[#9f3d28]">
-                      Thêm vào giỏ
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {featuredProducts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#C84B31]/20 bg-white p-12 text-center text-sm font-bold text-zinc-500">
+              Chưa có sản phẩm thật để xếp xu hướng.
             </div>
-
-            {[
-              {
-                title: 'Bộ Bát Sơn Mài Crimson',
-                price: '1.250.000đ',
-                image:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuB8hLJNFuUffOBoeYwxSV9oChhlKcUOmdsCQU1Fav_TbR5ExKI9JSmyT7VPoQlgB5g_awE3j-EvHUNEBYdsxuX3WqiVf-QsVehD4hoI5KeSjOc1-V6zlNvQDmrr0cCfQePJWHOj50gq2TGBo3rbxbzWpGDVgFL672AzieRwFKgPzHo8xMFnFK6MMWagjGZZv85VGJWJPha2vPJ9mGuz6b1rnicfv7rtNJWlgAkRx8PxGFT6iXHIND8A8beRqd2d109gH3plJ18U65se',
-              },
-              {
-                title: 'Giỏ Mây Đan Tự Nhiên',
-                price: '450.000đ',
-                image:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuAGMczBzyT8kowvXDANg4pjlbdxghUV1IzuxGv30iprSar7ZcWXR-X6Qd4uDg6DkWbbx0JEUYQP4MT1va7-6f-Hs7dWsPnvg-l1cWJUOo1ji66DQpN4G6XBVdkwDuEtJuLfbKTJ1Q4OYgwpUD76izQNL_rsvfULgKFcGqyxEWPyURp7SOriHMyjcnKNGo-DAjynQ-xdnREWDbEggLCt9CYbi4f--vWNBMAQr9ST_G8dh2P3o1KP8v5dpre-3MxRbAMCJZDcRJBLkzha',
-              },
-
-            ].map((item, index) => (
-              <div key={`${item.title}-${index}`} className="group rounded-2xl bg-white p-4 shadow-sm transition-all duration-500 hover:shadow-2xl">
-                <div className="aspect-square overflow-hidden rounded-xl bg-[#F2F4F2]">
-                  <img className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" src={item.image} alt={item.title} />
-                </div>
-                <div className="pb-2 pt-5">
-                  <div className="mb-2 flex items-center gap-0.5 text-xs text-amber-500">★★★★☆</div>
-                  <h4 className="text-lg font-bold">{item.title}</h4>
-                  <div className="mt-4 flex items-center justify-between">
-                    <p className="text-xl font-extrabold text-[#C84B31]">{item.price}</p>
-                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1A1C1C] text-white hover:bg-[#C84B31] transition-colors">
-                      +
-                    </button>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+              {featuredProducts[0] && (
+                <Link
+                  href={`/san-pham/${featuredProducts[0].slug || featuredProducts[0].id}`}
+                  className="group relative md:col-span-2 md:row-span-2"
+                >
+                  <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:shadow-2xl">
+                    <div className="relative aspect-[4/5] flex-grow overflow-hidden md:aspect-auto">
+                      <img
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        src={resolveImageUrl(featuredProducts[0].images?.[0]?.url, fallbackImage)}
+                        alt={featuredProducts[0].title}
+                      />
+                      <div className="absolute left-6 top-6 rounded-full bg-white/90 px-4 py-2 text-xs font-bold text-[#C84B31] shadow-sm backdrop-blur-md">
+                        XU HƯỚNG
+                      </div>
+                    </div>
+                    <div className="bg-white p-10">
+                      <div className="mb-3 flex items-center gap-2 text-sm">
+                        <span className="font-black text-amber-500">
+                          {featuredProducts[0].reviewSummary?.total
+                            ? `★ ${featuredProducts[0].reviewSummary.averageRating.toFixed(1).replace('.0', '')}`
+                            : 'Chưa có đánh giá'}
+                        </span>
+                        <span className="text-xs text-zinc-400">
+                          ({featuredProducts[0].reviewSummary?.total || 0} đánh giá thật)
+                        </span>
+                      </div>
+                      <h3 className="mb-2 text-3xl font-bold">{featuredProducts[0].title}</h3>
+                      <p className="mb-6 italic text-zinc-500">
+                        {getArtisanName(featuredProducts[0])} • {featuredProducts[0].category?.name}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-extrabold text-[#C84B31]">
+                          {formatVnd(featuredProducts[0].price_retail)}
+                        </span>
+                        <span className="rounded-xl bg-[#C84B31] px-8 py-3 font-bold text-white transition-colors group-hover:bg-[#9f3d28]">
+                          Xem chi tiết
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                </Link>
+              )}
+
+              {featuredProducts.slice(1).map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/san-pham/${item.slug || item.id}`}
+                  className="group rounded-2xl bg-white p-4 shadow-sm transition-all duration-500 hover:shadow-2xl"
+                >
+                  <div className="aspect-square overflow-hidden rounded-xl bg-[#F2F4F2]">
+                    <img
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      src={resolveImageUrl(item.images?.[0]?.url, fallbackImage)}
+                      alt={item.title}
+                    />
+                  </div>
+                  <div className="pb-2 pt-5">
+                    <div className="mb-2 text-xs font-black text-amber-500">
+                      {item.reviewSummary?.total
+                        ? `★ ${item.reviewSummary.averageRating.toFixed(1).replace('.0', '')} (${item.reviewSummary.total})`
+                        : 'Chưa có đánh giá'}
+                    </div>
+                    <h4 className="line-clamp-2 min-h-[56px] text-lg font-bold">{item.title}</h4>
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className="text-xl font-extrabold text-[#C84B31]">
+                        {formatVnd(item.price_retail)}
+                      </p>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1A1C1C] text-white transition-colors group-hover:bg-[#C84B31]">
+                        +
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="mb-16 sticky top-[72px] z-40">
@@ -536,6 +530,12 @@ export default function Home() {
             <p className="mt-6 text-zinc-500">Đang tải dữ liệu sản phẩm...</p>
           )}
 
+          {productError && (
+            <p className="mt-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              {productError}
+            </p>
+          )}
+
           {!loadingProducts && visibleProducts.length === 0 && (
             <p className="mt-6 text-zinc-500">
               Không có sản phẩm phù hợp với bộ lọc hiện tại.
@@ -550,9 +550,12 @@ export default function Home() {
                 title={product.title}
                 price={product.price_retail}
                 imageUrl={product.images?.[0]?.url}
-                artisanName={product.artisan?.profile?.display_name || undefined}
+                artisanName={getArtisanName(product)}
                 categoryName={product.category?.name}
-                slug={product.id} // Assuming slug is ID or we use ID for URL
+                slug={product.slug || product.id}
+                averageRating={product.reviewSummary?.averageRating}
+                reviewCount={product.reviewSummary?.total}
+                followerCount={product.artisan?._count?.followers}
               />
             ))}
           </div>

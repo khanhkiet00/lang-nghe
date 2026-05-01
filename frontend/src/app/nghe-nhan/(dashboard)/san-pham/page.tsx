@@ -8,6 +8,9 @@ import { motion } from 'framer-motion';
 import Pagination from '@/components/ui/Pagination';
 import { resolveImageUrl } from '@/lib/images';
 
+const productFallbackImage =
+  'https://images.unsplash.com/photo-1621376436442-999335805822?q=80&w=400&auto=format&fit=crop';
+
 interface Product {
   id: string;
   title: string;
@@ -264,7 +267,7 @@ export default function ProductListPage() {
                       <img
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        src={resolveImageUrl(product.images?.[0]?.url, 'https://via.placeholder.com/150')}
+                        src={resolveImageUrl(product.images?.[0]?.url, productFallbackImage)}
                       />
                     </div>
                   </td>

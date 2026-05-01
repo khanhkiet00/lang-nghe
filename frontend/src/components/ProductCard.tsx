@@ -12,6 +12,9 @@ interface ProductCardProps {
   artisanName?: string;
   categoryName?: string;
   slug: string;
+  averageRating?: number;
+  reviewCount?: number;
+  followerCount?: number;
 }
 
 export function ProductCard({
@@ -22,12 +25,17 @@ export function ProductCard({
   artisanName,
   categoryName,
   slug,
+  averageRating = 0,
+  reviewCount = 0,
+  followerCount = 0,
 }: ProductCardProps) {
   const formattedPrice = new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   const displayImage = resolveImageUrl(
     imageUrl,
     'https://images.unsplash.com/photo-1621376436442-999335805822?q=80&w=800&auto=format&fit=crop',
   );
+  const ratingLabel =
+    reviewCount > 0 ? averageRating.toFixed(1).replace('.0', '') : 'Mới';
 
   return (
     <motion.div
@@ -50,9 +58,16 @@ export function ProductCard({
           )}
         </div>
 
-        <div className="mt-5 flex flex-col h-[180px]">
-          <div className="flex items-center gap-0.5 text-[11px] text-amber-500 mb-2">
-            <span>★★★★★</span>
+        <div className="mt-5 flex h-[190px] flex-col">
+          <div className="mb-2 flex items-center justify-between text-[11px]">
+            <span className="font-black text-amber-500">
+              {reviewCount > 0 ? `★ ${ratingLabel}` : 'Chưa có đánh giá'}
+            </span>
+            {reviewCount > 0 && (
+              <span className="font-bold text-zinc-400">
+                {reviewCount} đánh giá
+              </span>
+            )}
           </div>
           
           <div className="flex justify-between items-start gap-3 min-h-[56px]">
@@ -68,12 +83,17 @@ export function ProductCard({
             <p className="text-[10px] font-black uppercase tracking-widest text-[#4A5D23]/60 italic">
               {artisanName || 'Nghệ nhân làng nghề'}
             </p>
+            {followerCount > 0 && (
+              <span className="text-[10px] font-bold text-zinc-400">
+                {followerCount} theo dõi
+              </span>
+            )}
           </div>
 
           <div className="mt-auto">
-            <button className="w-full py-4 rounded-2xl bg-[#1a1c1c] text-white text-xs font-black uppercase tracking-widest transition-all hover:bg-[#c84b31] shadow-xl shadow-black/5 active:scale-95">
-              Thêm vào giỏ
-            </button>
+            <span className="block w-full rounded-2xl bg-[#1a1c1c] py-4 text-center text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-black/5 transition-all group-hover:bg-[#c84b31]">
+              Xem chi tiết
+            </span>
           </div>
         </div>
       </Link>

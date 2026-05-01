@@ -7,6 +7,49 @@ import slugify from 'slugify';
 export class ArtisansService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReviewAverage(review: {
+    rating_quality: number;
+    rating_accuracy: number;
+    rating_shipping: number;
+    rating_communication: number;
+    rating_payment: number;
+  }) {
+    return (
+      review.rating_quality +
+      review.rating_accuracy +
+      review.rating_shipping +
+      review.rating_communication +
+      review.rating_payment
+    ) / 5;
+  }
+
+  private async getReviewSummary(userId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { reviewee_id: userId },
+      select: {
+        rating_quality: true,
+        rating_accuracy: true,
+        rating_shipping: true,
+        rating_communication: true,
+        rating_payment: true,
+      },
+    });
+
+    return {
+      total: reviews.length,
+      averageRating: reviews.length
+        ? Number(
+            (
+              reviews.reduce(
+                (sum, review) => sum + this.getReviewAverage(review),
+                0,
+              ) / reviews.length
+            ).toFixed(2),
+          )
+        : 0,
+    };
+  }
+
   private buildSlug(text: string): string {
     return (
       slugify(text, { lower: true, strict: true, trim: true }) || 'nghe-nhan'
@@ -150,7 +193,13 @@ export class ArtisansService {
     if (!profile) {
       throw new NotFoundException('Không tìm thấy artisan');
     }
-    return profile;
+    return {
+      ...profile,
+      user: {
+        ...profile.user,
+        reviewSummary: await this.getReviewSummary(profile.user.id),
+      },
+    };
   }
 
   async getProfileByUserId(userId: string) {
@@ -170,6 +219,12 @@ export class ArtisansService {
     if (!profile) {
       throw new NotFoundException('Không tìm thấy artisan');
     }
-    return profile;
+    return {
+      ...profile,
+      user: {
+        ...profile.user,
+        reviewSummary: await this.getReviewSummary(profile.user.id),
+      },
+    };
   }
 }

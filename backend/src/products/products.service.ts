@@ -14,6 +14,83 @@ import slugify from 'slugify';
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private isUuid(value: string) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    );
+  }
+
+  private getReviewAverage(review: {
+    rating_quality: number;
+    rating_accuracy: number;
+    rating_shipping: number;
+    rating_communication: number;
+    rating_payment: number;
+  }) {
+    return (
+      review.rating_quality +
+      review.rating_accuracy +
+      review.rating_shipping +
+      review.rating_communication +
+      review.rating_payment
+    ) / 5;
+  }
+
+  private async getReviewSummaries(userIds: string[]) {
+    const uniqueIds = Array.from(new Set(userIds));
+    if (uniqueIds.length === 0) {
+      return new Map<string, { total: number; averageRating: number }>();
+    }
+
+    const reviews = await this.prisma.review.findMany({
+      where: { reviewee_id: { in: uniqueIds } },
+      select: {
+        reviewee_id: true,
+        rating_quality: true,
+        rating_accuracy: true,
+        rating_shipping: true,
+        rating_communication: true,
+        rating_payment: true,
+      },
+    });
+
+    const totals = new Map<string, { total: number; score: number }>();
+    for (const review of reviews) {
+      const current = totals.get(review.reviewee_id) ?? { total: 0, score: 0 };
+      current.total += 1;
+      current.score += this.getReviewAverage(review);
+      totals.set(review.reviewee_id, current);
+    }
+
+    return new Map(
+      uniqueIds.map((id) => {
+        const item = totals.get(id);
+        return [
+          id,
+          {
+            total: item?.total ?? 0,
+            averageRating: item?.total
+              ? Number((item.score / item.total).toFixed(2))
+              : 0,
+          },
+        ];
+      }),
+    );
+  }
+
+  private attachReviewSummaryToProduct<T extends { artisanId: string }>(
+    product: T,
+    summaries: Map<string, { total: number; averageRating: number }>,
+  ) {
+    return {
+      ...product,
+      reviewSummary: summaries.get(product.artisanId) ?? {
+        total: 0,
+        averageRating: 0,
+      },
+    };
+  }
+
   private async buildUniqueProductSlug(
     title: string,
     excludeProductId?: string,
@@ -133,24 +210,49 @@ export class ProductsService {
     };
   }
 
-  async getProductById(productId: string) {
+  async getProductById(productIdOrSlug: string) {
     const product = await this.prisma.product.findFirst({
-      where: { id: productId, isDeleted: false },
+      where: {
+        isDeleted: false,
+        OR: [
+          ...(this.isUuid(productIdOrSlug) ? [{ id: productIdOrSlug }] : []),
+          { slug: productIdOrSlug },
+        ],
+      },
       include: {
         category: { select: { id: true, name: true, slug: true } },
         images: { select: { id: true, url: true } },
         artisan: {
           select: {
             id: true,
+            reputationScore: true,
+            _count: { select: { followers: true } },
             artisanProfile: {
-              select: { fullName: true, slug: true, avatarUrl: true },
+              select: {
+                fullName: true,
+                slug: true,
+                avatarUrl: true,
+                description: true,
+                expertise: true,
+                location: true,
+              },
+            },
+            profile: {
+              select: {
+                display_name: true,
+                slug: true,
+                avatar_url: true,
+                bio: true,
+                village: true,
+              },
             },
           },
         },
       },
     });
     if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
-    return product;
+    const summaries = await this.getReviewSummaries([product.artisanId]);
+    return this.attachReviewSummaryToProduct(product, summaries);
   }
 
   async listPublicProducts(query: ListProductsDto) {
@@ -196,8 +298,26 @@ export class ProductsService {
           artisan: {
             select: {
               id: true,
+              reputationScore: true,
+              _count: { select: { followers: true } },
+              artisanProfile: {
+                select: {
+                  fullName: true,
+                  slug: true,
+                  avatarUrl: true,
+                  description: true,
+                  expertise: true,
+                  location: true,
+                },
+              },
               profile: {
-                select: { display_name: true, slug: true, avatar_url: true },
+                select: {
+                  display_name: true,
+                  slug: true,
+                  avatar_url: true,
+                  bio: true,
+                  village: true,
+                },
               },
             },
           },
@@ -205,8 +325,14 @@ export class ProductsService {
       }),
     ]);
 
+    const summaries = await this.getReviewSummaries(
+      items.map((product) => product.artisanId),
+    );
+
     return {
-      items,
+      items: items.map((product) =>
+        this.attachReviewSummaryToProduct(product, summaries),
+      ),
       pagination: {
         page,
         limit,

@@ -6,14 +6,14 @@ import {
   IsObject,
   IsOptional,
   IsString,
-  IsUUID,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class OrderItemDto {
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   productId!: string;
 
   @IsInt()
@@ -48,7 +48,8 @@ class ShippingAddressDto {
 }
 
 export class CreateOrderDto {
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   artisanId!: string;
 
   @IsArray()

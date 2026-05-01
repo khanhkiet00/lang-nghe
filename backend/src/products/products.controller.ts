@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -49,7 +48,7 @@ export class ProductsController {
   }
 
   @Get(':id')
-  async getOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  async getOne(@Param('id') id: string) {
     const data = await this.productsService.getProductById(id);
     return { data };
   }
@@ -58,7 +57,7 @@ export class ProductsController {
   @Patch(':id')
   async update(
     @Req() req: AuthenticatedRequest,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id') id: string,
     @Body() body: UpdateProductDto,
   ) {
     const data = await this.productsService.updateProduct(
@@ -73,7 +72,7 @@ export class ProductsController {
   @Delete(':id')
   async deleteProduct(
     @Req() req: AuthenticatedRequest,
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('id') id: string,
   ) {
     await this.productsService.softDeleteProduct(req.user.sub, id);
     return { message: 'Product deleted successfully' };

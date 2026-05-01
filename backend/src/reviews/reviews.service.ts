@@ -11,6 +11,53 @@ import { CreateReviewDto } from './dto/create-review.dto';
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReviewAverage(review: {
+    rating_quality: number;
+    rating_accuracy: number;
+    rating_shipping: number;
+    rating_communication: number;
+    rating_payment: number;
+  }) {
+    return (
+      review.rating_quality +
+      review.rating_accuracy +
+      review.rating_shipping +
+      review.rating_communication +
+      review.rating_payment
+    ) / 5;
+  }
+
+  private async refreshReputationScore(revieweeId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { reviewee_id: revieweeId },
+      select: {
+        rating_quality: true,
+        rating_accuracy: true,
+        rating_shipping: true,
+        rating_communication: true,
+        rating_payment: true,
+      },
+    });
+
+    const reputationScore = reviews.length
+      ? Number(
+          (
+            reviews.reduce(
+              (sum, review) => sum + this.getReviewAverage(review),
+              0,
+            ) / reviews.length
+          ).toFixed(2),
+        )
+      : 0;
+
+    await this.prisma.user.update({
+      where: { id: revieweeId },
+      data: { reputationScore },
+    });
+
+    return reputationScore;
+  }
+
   async createReview(reviewerId: string, dto: CreateReviewDto) {
     if (reviewerId === dto.reviewee_id) {
       throw new BadRequestException('Khong the tu danh gia chinh minh');
@@ -43,7 +90,7 @@ export class ReviewsService {
     }
 
     try {
-      return await this.prisma.review.create({
+      const review = await this.prisma.review.create({
         data: {
           reviewer_id: reviewerId,
           reviewee_id: dto.reviewee_id,
@@ -71,6 +118,13 @@ export class ReviewsService {
           },
         },
       });
+
+      const reputationScore = await this.refreshReputationScore(dto.reviewee_id);
+
+      return {
+        ...review,
+        revieweeReputationScore: reputationScore,
+      };
     } catch (error) {
       if (typeof error === 'object' && error !== null && 'code' in error) {
         const prismaError = error as { code?: string };
@@ -83,7 +137,7 @@ export class ReviewsService {
   }
 
   async listReviewsForUser(userId: string) {
-    return this.prisma.review.findMany({
+    const reviews = await this.prisma.review.findMany({
       where: { reviewee_id: userId },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -101,5 +155,24 @@ export class ReviewsService {
         },
       },
     });
+
+    const averageRating = reviews.length
+      ? Number(
+          (
+            reviews.reduce(
+              (sum, review) => sum + this.getReviewAverage(review),
+              0,
+            ) / reviews.length
+          ).toFixed(2),
+        )
+      : 0;
+
+    return {
+      items: reviews,
+      summary: {
+        total: reviews.length,
+        averageRating,
+      },
+    };
   }
 }

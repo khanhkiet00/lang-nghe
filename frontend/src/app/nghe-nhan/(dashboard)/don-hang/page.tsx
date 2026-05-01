@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import Pagination from '@/components/ui/Pagination';
 import OrderDetailDrawer from '@/components/OrderDetailDrawer';
+import { resolveImageUrl } from '@/lib/images';
+
+const productFallbackImage =
+  'https://images.unsplash.com/photo-1621376436442-999335805822?q=80&w=400&auto=format&fit=crop';
 
 interface OrderItem {
   id: string;
@@ -237,7 +241,7 @@ export default function OrderManagementPage() {
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-surface-container shrink-0 border border-black/5">
                 <img
                   className="w-full h-full object-cover"
-                  src={order.orderItems?.[0]?.product?.images?.[0]?.url || 'https://via.placeholder.com/150'}
+                  src={resolveImageUrl(order.orderItems?.[0]?.product?.images?.[0]?.url, productFallbackImage)}
                   alt="Order Item"
                 />
               </div>

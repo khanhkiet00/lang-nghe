@@ -79,6 +79,7 @@ export class AuthController {
 
     return {
       accessToken: tokenPayload.accessToken,
+      refreshToken: tokenPayload.refreshToken,
       user: tokenPayload.user,
     };
   }

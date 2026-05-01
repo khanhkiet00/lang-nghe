@@ -15,6 +15,49 @@ export type UserWithRoles = User & { roles: UserRole[] };
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getReviewAverage(review: {
+    rating_quality: number;
+    rating_accuracy: number;
+    rating_shipping: number;
+    rating_communication: number;
+    rating_payment: number;
+  }) {
+    return (
+      review.rating_quality +
+      review.rating_accuracy +
+      review.rating_shipping +
+      review.rating_communication +
+      review.rating_payment
+    ) / 5;
+  }
+
+  private async getReviewSummary(userId: string) {
+    const reviews = await this.prisma.review.findMany({
+      where: { reviewee_id: userId },
+      select: {
+        rating_quality: true,
+        rating_accuracy: true,
+        rating_shipping: true,
+        rating_communication: true,
+        rating_payment: true,
+      },
+    });
+
+    return {
+      total: reviews.length,
+      averageRating: reviews.length
+        ? Number(
+            (
+              reviews.reduce(
+                (sum, review) => sum + this.getReviewAverage(review),
+                0,
+              ) / reviews.length
+            ).toFixed(2),
+          )
+        : 0,
+    };
+  }
+
   private async buildUniqueProfileSlug(
     displayName: string,
     excludeUserId?: string,
@@ -82,6 +125,14 @@ export class UsersService {
         phone: true,
         reputationScore: true,
         createdAt: true,
+        roles: { select: { role: true, isActive: true } },
+        artisanProfile: {
+          select: {
+            fullName: true,
+            slug: true,
+            isVerified: true,
+          },
+        },
         profile: true,
         _count: {
           select: {
@@ -122,6 +173,7 @@ export class UsersService {
     // Đảm bảo trả về đúng định dạng object _count mà frontend mong đợi
     return {
       ...user,
+      reviewSummary: await this.getReviewSummary(userId),
       _count: {
         followers: user._count.followers,
         following: user._count.following,
@@ -198,6 +250,21 @@ export class UsersService {
       throw new NotFoundException('Khong tim thay nguoi dung can theo doi');
     }
 
+    const status = await this.getFollowStatus(followerId, followingId);
+
+    if (status.isFollowing) {
+      await this.prisma.user.update({
+        where: { id: followerId },
+        data: {
+          following: {
+            disconnect: { id: followingId },
+          },
+        },
+      });
+
+      return { following: false };
+    }
+
     await this.prisma.user.update({
       where: { id: followerId },
       data: {
@@ -235,5 +302,50 @@ export class UsersService {
     });
 
     return { isFollowing: (user?.following?.length ?? 0) > 0 };
+  }
+
+  async getPublicProfileBySlug(slug: string) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { slug },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            reputationScore: true,
+            createdAt: true,
+            _count: {
+              select: {
+                followers: true,
+                following: true,
+                products: {
+                  where: { isActive: true, isDeleted: false },
+                },
+              },
+            },
+            products: {
+              where: { isActive: true, isDeleted: false },
+              orderBy: { createdAt: 'desc' },
+              include: {
+                category: { select: { id: true, name: true, slug: true } },
+                images: { select: { id: true, url: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Khong tim thay ho so cong khai');
+    }
+
+    return {
+      ...profile,
+      user: {
+        ...profile.user,
+        reviewSummary: await this.getReviewSummary(profile.user.id),
+      },
+    };
   }
 }

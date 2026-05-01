@@ -28,6 +28,7 @@ model User {
   reputationScore Float            @default(0)
   isSuspended     Boolean          @default(false)
   isB2bEnabled    Boolean          @default(false)
+  shippingAddresses ShippingAddress[]
   followers       User[]           @relation("UserFollows")
   following       User[]           @relation("UserFollows")
   createdAt       DateTime         @default(now())
@@ -143,6 +144,23 @@ model Profile {
   slug         String   @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model ShippingAddress {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  label       String?
+  name        String
+  phone       String
+  address     String
+  ward        String?
+  district    String?
+  province    String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([userId])
 }
 
 model Category {
