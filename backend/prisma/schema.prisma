@@ -28,6 +28,8 @@ model User {
   reputationScore Float            @default(0)
   isSuspended     Boolean          @default(false)
   isB2bEnabled    Boolean          @default(false)
+  followers       User[]           @relation("UserFollows")
+  following       User[]           @relation("UserFollows")
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
@@ -70,6 +72,7 @@ model Product {
   quantity        Int            @default(0)
   version         Int            @default(0)
   isActive        Boolean        @default(true)
+  isDeleted       Boolean        @default(false)
   isB2bAvailable  Boolean        @default(false)
   material        String?
   origin          String?

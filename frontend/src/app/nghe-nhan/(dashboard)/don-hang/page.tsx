@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
+import Pagination from '@/components/ui/Pagination';
+import OrderDetailDrawer from '@/components/OrderDetailDrawer';
 
 interface OrderItem {
   id: string;
@@ -17,39 +20,120 @@ interface Order {
   createdAt: string;
   shippingAddress: any;
   orderItems: OrderItem[];
+  trackingCode?: string;
+  noteFromBuyer?: string;
 }
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [activeTab, setActiveTab] = useState('ALL');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/artisan`, {
-          headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-          }
-        });
-        const json = await res.json();
-        setOrders(json.data?.items || json.data || []);
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Drawer state
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    fetchOrders();
+  const fetchOrders = useCallback(async (page: number, status: string, search: string, isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setIsFetching(true);
+    try {
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
+        search: search
+      });
+      if (status !== 'ALL') query.append('status', status.toLowerCase());
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/artisan?${query.toString()}`, {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
+        }
+      });
+      const json = await res.json();
+      setOrders(json.data?.items || json.data || []);
+      setTotalOrders(json.data?.pagination?.total || 0);
+      setTotalPages(json.data?.pagination?.totalPages || 1);
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setLoading(false);
+      setIsFetching(false);
+    }
   }, []);
+
+  const handleUpdateStatus = async (orderId: string, status: string, data: any = {}) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
+        },
+        body: JSON.stringify({ status, ...data }),
+      });
+
+      if (res.ok) {
+        toast.success('Cập nhật trạng thái thành công');
+        fetchOrders(currentPage, activeTab, searchTerm, false);
+      } else {
+        const err = await res.json();
+        toast.error('Lỗi: ' + (err.message || 'Không thể cập nhật'));
+      }
+    } catch (error) {
+      toast.error('Lỗi kết nối');
+    }
+  };
+
+  const openDetail = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDrawerOpen(true);
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchOrders(1, 'ALL', '', true);
+  }, [fetchOrders]);
+
+  // Handle Tab change
+  useEffect(() => {
+    if (!loading) {
+      setCurrentPage(1);
+      fetchOrders(1, activeTab, searchTerm, false);
+    }
+  }, [activeTab]); // Trigger specifically on tab change
+
+  // Handle Search Debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!loading && searchTerm !== '') {
+        setCurrentPage(1);
+        fetchOrders(1, activeTab, searchTerm, false);
+      } else if (searchTerm === '' && !loading) {
+        fetchOrders(1, activeTab, '', false);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Handle Page change
+  useEffect(() => {
+    if (currentPage !== 1 && !loading) {
+      fetchOrders(currentPage, activeTab, searchTerm, false);
+    }
+  }, [currentPage]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'processing': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'shipped': return 'bg-secondary-container text-secondary border-secondary/20';
-      case 'completed': return 'bg-green-50 text-green-700 border-green-200';
+      case 'pending': return 'bg-[#fff7ed] text-[#c2410c] border-[#ffedd5]'; // Orange/Warm for new
+      case 'processing': return 'bg-[#eff6ff] text-[#1d4ed8] border-[#dbeafe]'; // Blue for in-progress
+      case 'shipped': return 'bg-[#f5f3ff] text-[#6d28d9] border-[#ede9fe]'; // Purple for shipping
+      case 'completed': return 'bg-[#f0fdf4] text-[#15803d] border-[#dcfce7]'; // Green for success
+      case 'cancelled': return 'bg-[#fef2f2] text-[#b91c1c] border-[#fee2e2]'; // Red for cancelled
       default: return 'bg-gray-50 text-gray-700';
     }
   };
@@ -57,17 +141,15 @@ export default function OrderManagementPage() {
   const getStatusLabel = (status: string) => {
      switch (status.toLowerCase()) {
       case 'pending': return 'Chờ xác nhận';
-      case 'processing': return 'Đang xử lý';
-      case 'shipped': return 'Đã giao hàng';
-      case 'completed': return 'Hoàn thành';
+      case 'processing': return 'Đang chuẩn bị hàng';
+      case 'shipped': return 'Đang vận chuyển';
+      case 'completed': return 'Giao hàng thành công';
+      case 'cancelled': return 'Đã hủy đơn';
       default: return status;
     }
   };
 
-  const filteredOrders = orders.filter(o => {
-    if (activeTab === 'ALL') return true;
-    return o.status.toUpperCase() === activeTab;
-  });
+  // Lọc tab giờ đây được xử lý ở server-side thông qua fetchOrders
 
   return (
     <main className="flex flex-col min-h-screen">
@@ -79,6 +161,24 @@ export default function OrderManagementPage() {
           <p className="text-on-surface-variant mt-2 font-medium">
             Theo dõi và xử lý các đơn đặt hàng thủ công từ làng nghề.
           </p>
+        </div>
+
+        <div className="relative w-full max-w-md group">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-[#c84b31] transition-colors">
+            search
+          </span>
+          <input
+            className="w-full pl-12 pr-4 py-3 bg-white border border-[#1a1c1c]/5 rounded-xl text-sm transition-all focus:ring-2 focus:ring-[#c84b31]/20 outline-none shadow-sm"
+            placeholder="Tìm theo Mã đơn, Tên khách hoặc Sản phẩm..."
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {isFetching && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-[#c84b31] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -100,18 +200,18 @@ export default function OrderManagementPage() {
         </div>
       </div>
 
-      <div className="px-10 pb-20 space-y-4">
+      <div className={`px-10 pb-20 space-y-4 transition-opacity duration-300 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 opacity-40">
             <span className="material-symbols-outlined text-6xl mb-4 animate-pulse">auto_stories</span>
             <p className="text-sm font-medium">Đang kết nối lò nung...</p>
           </div>
-        ) : filteredOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 opacity-40">
             <span className="material-symbols-outlined text-6xl mb-4">inbox</span>
             <p className="text-sm font-medium">Chưa có đơn hàng nào trong mục này.</p>
           </div>
-        ) : filteredOrders.map((order) => (
+        ) : orders.map((order) => (
           <div
             key={order.id}
             className="bg-white rounded-xl p-6 flex flex-col gap-6 shadow-sm border border-[#1a1c1c]/5 hover:shadow-md transition-all duration-300"
@@ -162,16 +262,52 @@ export default function OrderManagementPage() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/10">
-              <button className="px-5 py-2 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors">
+              <button 
+                onClick={() => openDetail(order)}
+                className="px-5 py-2 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors"
+              >
                 Chi tiết
               </button>
-              <button className="px-6 py-2 bg-[#c84b31] text-white font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity">
-                Xác nhận đơn hàng
-              </button>
+              {order.status.toLowerCase() === 'pending' && (
+                <button 
+                  onClick={() => handleUpdateStatus(order.id, 'processing')}
+                  className="px-6 py-2 bg-[#c84b31] text-white font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  Xác nhận & Xử lý
+                </button>
+              )}
+              {order.status.toLowerCase() === 'processing' && (
+                <button 
+                  onClick={() => openDetail(order)} // Giục nghệ nhân vào Drawer để nhập mã vận đơn
+                  className="px-6 py-2 bg-blue-600 text-white font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                >
+                  Giao hàng
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      <div className="px-10 pb-10">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-[10px] text-on-surface-variant/50 font-bold uppercase tracking-widest">
+            Hiển thị {orders.length} / {totalOrders} đơn hàng
+          </p>
+        </div>
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+
+      <OrderDetailDrawer 
+        order={selectedOrder}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </main>
   );
 }

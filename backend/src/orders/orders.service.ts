@@ -124,10 +124,33 @@ export class OrdersService {
     const page = Number(query.page ?? 1);
     const limit = Number(query.limit ?? 10);
 
-    const where = {
+    const where: any = {
       artisanId,
       ...(query.status ? { status: query.status } : {}),
     };
+
+    if (query.search) {
+      const searchPattern = `%${query.search}%`;
+      const matchedOrders = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT o.id FROM "Order" o
+        LEFT JOIN "User" b ON o."buyerId" = b.id
+        LEFT JOIN "Profile" p ON b.id = p."userId"
+        LEFT JOIN "OrderItem" oi ON o.id = oi."orderId"
+        LEFT JOIN "Product" pr ON oi."productId" = pr.id
+        WHERE unaccent(o.id::text) ILIKE unaccent(${searchPattern})
+           OR unaccent(p.display_name) ILIKE unaccent(${searchPattern})
+           OR unaccent(pr.title) ILIKE unaccent(${searchPattern})
+        GROUP BY o.id
+      `;
+      const ids = matchedOrders.map((row) => row.id);
+      if (ids.length === 0) {
+        return {
+          items: [],
+          pagination: { page, limit, total: 0, totalPages: 1 },
+        };
+      }
+      where.id = { in: ids };
+    }
 
     const [total, items] = await Promise.all([
       this.prisma.order.count({ where }),
@@ -215,11 +238,9 @@ export class OrdersService {
 
     // Kiểm tra luồng trạng thái hợp lệ
     const validTransitions: Record<string, string[]> = {
-      pending: ['confirmed', 'cancelled'],
-      confirmed: ['processing', 'cancelled'],
-      processing: ['shipped', 'cancelled'],
-      shipped: ['delivered'],
-      delivered: ['completed'],
+      pending: ['processing', 'cancelled'],
+      processing: ['shipped'],
+      shipped: ['completed'],
       completed: [],
       cancelled: [],
     };

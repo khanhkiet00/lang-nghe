@@ -31,8 +31,8 @@ const config: Config = {
         "on-error": "#ffffff",
       },
       fontFamily: {
-        manrope: ["Manrope", "sans-serif"],
-        headline: ["Manrope", "sans-serif"],
+        sans: ["var(--font-be-vietnam-pro)", "sans-serif"],
+        headline: ["var(--font-be-vietnam-pro)", "sans-serif"],
       },
     },
   },

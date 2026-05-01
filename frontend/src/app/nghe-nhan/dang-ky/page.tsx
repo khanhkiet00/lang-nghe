@@ -75,24 +75,26 @@ export default function RegisterArtisanPage() {
 
     try {
       const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
+      formDataUpload.append('files', file);
+      formDataUpload.append('folderType', field === 'avatarUrl' ? 'artisans' : 'ekyc');
 
       // 1. Upload lấy URL lưu database
+      let token = localStorage.getItem('langnghe_access_token');
       const res = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
         body: formDataUpload,
       });
 
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
-      setFormData(prev => ({ ...prev, [field]: data.uploadUrl }));
+      setFormData(prev => ({ ...prev, [field]: data.urls?.[0] || '' }));
 
       // 2. Nhận diện OCR nếu là thẻ CCCD
       if (field === 'cccdUrl') {
         setCheckingEkyc(true);
         setEkycMessage('⏳ AI Đang bóc tách thông tin CCCD...');
         
-        let token = localStorage.getItem('langnghe_access_token');
         const ocrFormData = new FormData();
         ocrFormData.append('image', file);
 
@@ -268,8 +270,8 @@ export default function RegisterArtisanPage() {
     <main className="min-h-screen bg-[#F9F9F7] text-[#1A1C1C]">
       <nav className="border-b border-[#C84B31]/10 bg-white">
         <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4">
-          <Link href="/dashboard" className="text-zinc-400 hover:text-[#C84B31]">
-            ← Quay lại Dashboard
+          <Link href="/" className="text-zinc-400 hover:text-[#C84B31]">
+            ← Quay lại trang chủ
           </Link>
           <span className="font-bold text-[#C84B31]">Đăng Ký Xưởng Mới</span>
         </div>

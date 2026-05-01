@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { ProductCard } from '@/components/ProductCard';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -132,8 +133,55 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
-
   const [isArtisan, setIsArtisan] = useState(false);
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const loadProducts = useCallback(async (pageNum: number, isAppend: boolean = false) => {
+    if (pageNum === 1) {
+      setLoadingProducts(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    try {
+      const limit = 8;
+      const response = await fetch(`${API_BASE}/products?page=${pageNum}&limit=${limit}`);
+
+      if (!response.ok) {
+        throw new Error('Không thể tải danh sách sản phẩm');
+      }
+
+      const json = (await response.json()) as {
+        data?: { items?: ProductItem[], meta?: { totalItems: number } };
+      };
+
+      const items = json.data?.items ?? [];
+      
+      if (isAppend) {
+        setAllProducts(prev => [...prev, ...items]);
+      } else {
+        setAllProducts(items.length > 0 ? items : mockProducts);
+      }
+
+      // Simple check for hasMore
+      if (items.length < limit) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+    } catch (error) {
+      console.error('Failed to load products:', error);
+      if (!isAppend) {
+        setAllProducts(mockProducts);
+      }
+    } finally {
+      setLoadingProducts(false);
+      setIsLoadingMore(false);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -143,43 +191,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
+    void loadProducts(1);
+  }, [loadProducts]);
 
-    async function loadProducts() {
-      setLoadingProducts(true);
-
-      try {
-        const response = await fetch(`${API_BASE}/products?page=1&limit=24`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error('Không thể tải danh sách sản phẩm');
-        }
-
-        const json = (await response.json()) as {
-          data?: { items?: ProductItem[] };
-        };
-
-        const items = json.data?.items ?? [];
-        if (items.length > 0) {
-          setAllProducts(items);
-        } else {
-          setAllProducts(mockProducts);
-        }
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          setAllProducts(mockProducts);
-        }
-      } finally {
-        setLoadingProducts(false);
-      }
-    }
-
-    void loadProducts();
-
-    return () => controller.abort();
-  }, []);
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    void loadProducts(nextPage, true);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('langnghe_access_token');
@@ -193,7 +212,7 @@ export default function Home() {
         if (payload.roles) {
           setIsArtisan(payload.roles.includes('artisan'));
         }
-      } catch (e) {}
+      } catch (e) { }
     } else {
       setIsLoggedIn(false);
     }
@@ -316,22 +335,24 @@ export default function Home() {
                 </button>
 
                 <div
-                  className={`absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-xl border border-black/5 bg-white p-2 shadow-xl transition-all z-50 ${
-                    authMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
-                  }`}
+                  className={`absolute right-0 top-12 flex w-52 flex-col gap-1 rounded-xl border border-black/5 bg-white p-2 shadow-xl transition-all z-50 ${authMenuOpen ? 'visible opacity-100' : 'invisible opacity-0'
+                    }`}
                 >
                   <p className="px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                     Tài khoản
                   </p>
-                  <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
-                    Bảng điều khiển
+                  <Link href="/ho-so" className="rounded-lg px-3 py-2 text-sm hover:bg-[#F2F4F2]">
+                    Hồ sơ của tôi
+                  </Link>
+                  <Link href="/ho-so/thong-ke" className="rounded-lg px-3 py-2 text-sm text-[#C84B31] font-medium hover:bg-[#F2F4F2]">
+                    Thống kê chi tiêu
                   </Link>
                   {isArtisan ? (
-                    <Link href="/dashboard/nghe-nhan" className="rounded-lg px-3 py-2 text-sm text-[#4A5D23] font-semibold hover:bg-[#F2F4F2]">
+                    <Link href="/nghe-nhan" className="rounded-lg px-3 py-2 text-sm text-[#4A5D23] font-semibold hover:bg-[#F2F4F2]">
                       Quản lý xưởng
                     </Link>
                   ) : (
-                    <Link href="/dashboard/nghe-nhan/dang-ky" className="rounded-lg px-3 py-2 text-sm text-[#C84B31] font-semibold hover:bg-[#F2F4F2]">
+                    <Link href="/nghe-nhan/dang-ky" className="rounded-lg px-3 py-2 text-sm text-[#C84B31] font-semibold hover:bg-[#F2F4F2]">
                       ★ Trở thành Nghệ nhân
                     </Link>
                   )}
@@ -357,9 +378,8 @@ export default function Home() {
                   key={slide.village}
                   src={slide.image}
                   alt={slide.village}
-                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                    index === activeSlide ? 'opacity-100' : 'opacity-0'
-                  }`}
+                  className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${index === activeSlide ? 'opacity-100' : 'opacity-0'
+                    }`}
                 />
               ))}
             </div>
@@ -379,9 +399,8 @@ export default function Home() {
                 <button
                   key={index}
                   onClick={() => setActiveSlide(index)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    index === activeSlide ? 'w-8 bg-[#C84B31]' : 'w-2 bg-white/60'
-                  }`}
+                  className={`h-1.5 rounded-full transition-all ${index === activeSlide ? 'w-8 bg-[#C84B31]' : 'w-2 bg-white/60'
+                    }`}
                   aria-label={`Slide ${index + 1}`}
                 />
               ))}
@@ -460,7 +479,7 @@ export default function Home() {
                 image:
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuAGMczBzyT8kowvXDANg4pjlbdxghUV1IzuxGv30iprSar7ZcWXR-X6Qd4uDg6DkWbbx0JEUYQP4MT1va7-6f-Hs7dWsPnvg-l1cWJUOo1ji66DQpN4G6XBVdkwDuEtJuLfbKTJ1Q4OYgwpUD76izQNL_rsvfULgKFcGqyxEWPyURp7SOriHMyjcnKNGo-DAjynQ-xdnREWDbEggLCt9CYbi4f--vWNBMAQr9ST_G8dh2P3o1KP8v5dpre-3MxRbAMCJZDcRJBLkzha',
               },
-              
+
             ].map((item, index) => (
               <div key={`${item.title}-${index}`} className="group rounded-2xl bg-white p-4 shadow-sm transition-all duration-500 hover:shadow-2xl">
                 <div className="aspect-square overflow-hidden rounded-xl bg-[#F2F4F2]">
@@ -484,29 +503,27 @@ export default function Home() {
         <section className="mb-16 sticky top-[72px] z-40">
           <div className="hide-scrollbar overflow-x-auto rounded-full bg-[#F2F4F2] px-8 py-4 shadow-sm">
             <div className="flex items-center gap-8 whitespace-nowrap text-sm font-medium">
+              <button
+                onClick={() => setActiveCategorySlug('all')}
+                className={`pb-1 ${activeCategorySlug === 'all'
+                    ? 'border-b-2 border-[#C84B31] font-bold text-[#C84B31]'
+                    : 'text-zinc-500 hover:text-[#C84B31]'
+                  }`}
+              >
+                Tất cả sản phẩm
+              </button>
+              {categories.map((category) => (
                 <button
-                  onClick={() => setActiveCategorySlug('all')}
-                  className={`pb-1 ${
-                    activeCategorySlug === 'all'
+                  key={category.slug}
+                  onClick={() => setActiveCategorySlug(category.slug)}
+                  className={`pb-1 ${activeCategorySlug === category.slug
                       ? 'border-b-2 border-[#C84B31] font-bold text-[#C84B31]'
                       : 'text-zinc-500 hover:text-[#C84B31]'
-                  }`}
-                >
-                  Tất cả sản phẩm
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.slug}
-                    onClick={() => setActiveCategorySlug(category.slug)}
-                    className={`pb-1 ${
-                      activeCategorySlug === category.slug
-                        ? 'border-b-2 border-[#C84B31] font-bold text-[#C84B31]'
-                        : 'text-zinc-500 hover:text-[#C84B31]'
                     }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
+                >
+                  {category.name}
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -527,56 +544,41 @@ export default function Home() {
 
           <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {visibleProducts.map((product) => (
-              <article
+              <ProductCard
                 key={product.id}
-                className="group rounded-3xl bg-white p-5 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl"
-              >
-                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-100">
-                  <img
-                    src={product.images?.[0]?.url || fallbackImage}
-                    alt={product.title}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full bg-[#D4ECA2] px-3 py-1.5 text-[9px] font-bold tracking-widest text-[#4A5D23]">
-                    {product.category?.name?.toUpperCase() || 'LÀNG NGHỀ'}
-                  </span>
-                </div>
-
-                <div className="mt-5">
-                  <p className="text-[11px] text-amber-500">★★★★★</p>
-                  <div className="mt-2 flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-bold leading-tight transition-colors group-hover:text-[#C84B31]">
-                      {product.title}
-                    </h3>
-                    <span className="font-extrabold text-[#C84B31]">
-                      {formatVnd(product.price_retail)}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#4A5D23]">
-                    {product.artisan?.profile?.display_name || 'Nghệ nhân làng nghề'}
-                  </p>
-                  <button className="mt-4 w-full rounded-2xl bg-[#1A1C1C] py-4 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#C84B31]">
-                    Thêm vào giỏ
-                  </button>
-                </div>
-              </article>
+                id={product.id}
+                title={product.title}
+                price={product.price_retail}
+                imageUrl={product.images?.[0]?.url}
+                artisanName={product.artisan?.profile?.display_name || undefined}
+                categoryName={product.category?.name}
+                slug={product.id} // Assuming slug is ID or we use ID for URL
+              />
             ))}
           </div>
 
-          <div className="mt-8 flex justify-center">
-            <button className="group flex items-center gap-2 rounded-full border-2 border-[#C84B31]/20 px-12 py-4 font-bold text-[#C84B31] transition-all duration-300 hover:bg-[#C84B31] hover:text-white">
-              <span>Xem Thêm Tinh Hoa</span>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="h-4 w-4 transition-transform group-hover:translate-y-1"
-                stroke="currentColor"
-                strokeWidth="2"
+          {hasMore && (
+            <div className="mt-12 flex justify-center">
+              <button 
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="group flex items-center gap-2 rounded-full border-2 border-[#C84B31]/20 px-12 py-4 font-bold text-[#C84B31] transition-all duration-300 hover:bg-[#C84B31] hover:text-white disabled:opacity-50"
               >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-          </div>
+                <span>{isLoadingMore ? 'Đang tải tinh hoa...' : 'Xem Thêm Tinh Hoa'}</span>
+                {!isLoadingMore && (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-4 w-4 transition-transform group-hover:translate-y-1"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
         </section>
       </main>
 

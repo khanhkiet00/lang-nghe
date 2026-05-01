@@ -20,4 +20,8 @@ export class ListOrdersDto {
   @IsOptional()
   @IsString()
   limit?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

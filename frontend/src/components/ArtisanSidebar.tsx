@@ -2,36 +2,74 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { resolveImageUrl } from '@/lib/images';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+type ArtisanProfile = {
+  fullName: string;
+  expertise?: string | null;
+  avatarUrl?: string | null;
+  isVerified?: boolean;
+};
 
 export default function ArtisanSidebar() {
   const pathname = usePathname();
+  const [profile, setProfile] = useState<ArtisanProfile | null>(null);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      const token = localStorage.getItem('langnghe_access_token');
+      if (!token) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/artisans/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setProfile(data);
+      } catch {
+        setProfile(null);
+      }
+    }
+
+    void fetchProfile();
+  }, []);
 
   const menuItems = [
     { name: 'Bảng điều khiển', icon: 'dashboard', href: '/nghe-nhan' },
     { name: 'Kho hàng', icon: 'inventory_2', href: '/nghe-nhan/san-pham' },
     { name: 'Đơn hàng', icon: 'local_shipping', href: '/nghe-nhan/don-hang' },
-    { name: 'Thống kê', icon: 'bar_chart', href: '/nghe-nhan/thong-ke' },
     { name: 'Cài đặt', icon: 'settings', href: '/nghe-nhan/settings' },
   ];
 
+  const studioName = profile?.fullName || 'Xưởng Làng Nghề';
+  const studioSubtitle = profile?.expertise || (profile?.isVerified ? 'Đã xác thực' : 'Nghệ nhân');
+  const avatarUrl = resolveImageUrl(
+    profile?.avatarUrl,
+    'https://images.unsplash.com/photo-1603321544554-f416a9a11fcf?q=80&w=400&auto=format&fit=crop',
+  );
+
   return (
     <aside className="hidden md:flex h-screen w-72 border-r border-[#1a1c1c]/5 bg-[#f5f2ee] flex-col p-6 sticky top-0">
-      <div className="font-black text-[#c84b31] text-xl mb-8 tracking-tighter">
-        Bát Tràng Studio
+      <div className="font-black text-[#c84b31] text-xl mb-8 tracking-tighter line-clamp-2">
+        {studioName}
       </div>
       
       <div className="flex items-center gap-3 mb-10 p-2">
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-surface-container-high border border-outline-variant/20">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-200 border border-black/5">
           <img
-            alt="Artisan Studio Profile"
+            alt={studioName}
             className="w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvdr2Qbinh7W6xrpTySUPztETrSuuDaf5bVVU_fqiJQSFNIom1D1fVfrmAbjuNF5MN56gkPDH_TD45e91l5bnLQNx5PbERgsE4f7krN5ymidBJr5zCRj_EFDg204WvApWzlCPD0w5dItBDhSk9lkJGfrBhAo15fzc8Jc6-AdUgdLj13ATPTRqcTN2pFuhWOgVkSiES-50uhey5nUOvI-KxN0ubkurQV4Vz0p_7a_SGxmh38zWWXByoakVpRQ2x2eyR2W-xLblGEykD"
+            src={avatarUrl}
           />
         </div>
-        <div>
-          <div className="font-bold text-sm text-on-surface">Bát Tràng Studio</div>
-          <div className="text-[10px] uppercase tracking-wider text-on-surface-variant/70 font-bold">
-            Nghệ nhân ưu tú
+        <div className="min-w-0">
+          <div className="font-bold text-sm text-[#1A1C1C] truncate">{studioName}</div>
+          <div className="text-[10px] uppercase tracking-wider text-[#1A1C1C]/60 font-bold truncate">
+            {studioSubtitle}
           </div>
         </div>
       </div>

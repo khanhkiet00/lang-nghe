@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -88,6 +88,25 @@ export class AnalyticsService {
       value,
     }));
 
+    const totalSales = orders.reduce((sum, order) => sum + order.subtotal, 0);
+    const totalOrders = orders.length;
+    const avgOrderValue =
+      totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
+    const totalProducts =
+      type === 'artisan'
+        ? await this.prisma.product.count({
+            where: { artisanId: userId, isDeleted: false },
+          })
+        : orders.reduce(
+            (sum, order) =>
+              sum +
+              order.orderItems.reduce(
+                (itemSum, item) => itemSum + item.quantity,
+                0,
+              ),
+            0,
+          );
+
     let cancelReasons: { name: string; value: number }[] = [];
     if (type === 'artisan') {
       const cancelledOrders = await this.prisma.order.findMany({
@@ -109,6 +128,16 @@ export class AnalyticsService {
       }));
     }
 
-    return { chartData, categoryData, cancelReasons };
+    return {
+      stats: {
+        totalSales,
+        totalOrders,
+        totalProducts,
+        avgOrderValue,
+      },
+      chartData,
+      categoryData,
+      cancelReasons,
+    };
   }
 }

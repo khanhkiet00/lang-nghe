@@ -24,8 +24,8 @@ export class ProductsService {
     let attempt = 0;
     while (attempt < 100) {
       const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
-      const existing = await this.prisma.product.findUnique({
-        where: { slug: candidate },
+      const existing = await this.prisma.product.findFirst({
+        where: { slug: candidate, isDeleted: false },
         select: { id: true },
       });
 
@@ -83,10 +83,35 @@ export class ProductsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
 
+    const where: any = {
+      artisanId: userId,
+      isDeleted: false,
+    };
+
+    if (query.search) {
+      // Tìm kiếm không dấu sử dụng unaccent của Postgres
+      const searchPattern = `%${query.search}%`;
+      const matchedIds = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Product"
+        WHERE unaccent(title) ILIKE unaccent(${searchPattern})
+           OR unaccent(description) ILIKE unaccent(${searchPattern})
+      `;
+      const ids = matchedIds.map((row) => row.id);
+      
+      // Nếu không tìm thấy ID nào thì chắc chắn không có kết quả
+      if (ids.length === 0) {
+        return {
+          items: [],
+          pagination: { page, limit, total: 0, totalPages: 1 },
+        };
+      }
+      where.id = { in: ids };
+    }
+
     const [total, items] = await Promise.all([
-      this.prisma.product.count({ where: { artisanId: userId } }),
+      this.prisma.product.count({ where }),
       this.prisma.product.findMany({
-        where: { artisanId: userId },
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -109,8 +134,8 @@ export class ProductsService {
   }
 
   async getProductById(productId: string) {
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
+    const product = await this.prisma.product.findFirst({
+      where: { id: productId, isDeleted: false },
       include: {
         category: { select: { id: true, name: true, slug: true } },
         images: { select: { id: true, url: true } },
@@ -132,20 +157,36 @@ export class ProductsService {
     const page = query.page ?? 1;
     const limit = query.limit ?? 12;
 
-    const whereClause = {
+    const where: any = {
       isActive: true,
-      ...(query.category_slug
-        ? { category: { slug: query.category_slug } }
-        : undefined),
-      ...(query.search
-        ? { title: { contains: query.search, mode: 'insensitive' as const } }
-        : undefined),
+      isDeleted: false,
     };
 
+    if (query.category_slug) {
+      where.category = { slug: query.category_slug };
+    }
+
+    if (query.search) {
+      const searchPattern = `%${query.search}%`;
+      const matchedIds = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "Product"
+        WHERE unaccent(title) ILIKE unaccent(${searchPattern})
+           OR unaccent(description) ILIKE unaccent(${searchPattern})
+      `;
+      const ids = matchedIds.map((row) => row.id);
+      if (ids.length === 0) {
+        return {
+          items: [],
+          pagination: { page, limit, total: 0, totalPages: 1 },
+        };
+      }
+      where.id = { in: ids };
+    }
+
     const [total, items] = await Promise.all([
-      this.prisma.product.count({ where: whereClause }),
+      this.prisma.product.count({ where }),
       this.prisma.product.findMany({
-        where: whereClause,
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -180,9 +221,9 @@ export class ProductsService {
     productId: string,
     dto: UpdateProductDto,
   ) {
-    const existingProduct = await this.prisma.product.findUnique({
-      where: { id: productId },
-      select: { id: true, artisanId: true, title: true },
+    const existingProduct = await this.prisma.product.findFirst({
+      where: { id: productId, isDeleted: false },
+      select: { id: true, artisanId: true, title: true, version: true },
     });
 
     if (!existingProduct) {
@@ -253,5 +294,25 @@ export class ProductsService {
       }
       throw error;
     }
+  }
+
+  async softDeleteProduct(userId: string, productId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, artisanId: true },
+    });
+
+    if (!product) {
+      throw new NotFoundException('San pham khong ton tai');
+    }
+
+    if (product.artisanId !== userId) {
+      throw new ForbiddenException('Ban khong co quyen xoa san pham nay');
+    }
+
+    return this.prisma.product.update({
+      where: { id: productId },
+      data: { isDeleted: true, isActive: false },
+    });
   }
 }

@@ -47,7 +47,7 @@ export class UpdateProductDto {
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(10)
-  @IsUrl({ require_tld: false }, { each: true })
+  @IsString({ each: true })
   images?: string[];
 
   // Đặc thù Làng Nghề

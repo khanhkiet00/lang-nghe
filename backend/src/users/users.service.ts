@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User, UserRole } from '@prisma/client';
@@ -82,8 +83,14 @@ export class UsersService {
         reputationScore: true,
         createdAt: true,
         profile: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+          },
+        },
         products: {
-          where: { isActive: true },
+          where: { isActive: true, isDeleted: false },
           orderBy: { createdAt: 'desc' },
           include: {
             category: {
@@ -108,7 +115,19 @@ export class UsersService {
       throw new NotFoundException('Khong tim thay nguoi dung');
     }
 
-    return user;
+    const productCount = await this.prisma.product.count({
+      where: { artisanId: userId, isActive: true, isDeleted: false },
+    });
+
+    // Đảm bảo trả về đúng định dạng object _count mà frontend mong đợi
+    return {
+      ...user,
+      _count: {
+        followers: user._count.followers,
+        following: user._count.following,
+        products: productCount,
+      },
+    };
   }
 
   async updateProfile(userId: string, data: UpdateProfileDto) {
@@ -164,5 +183,57 @@ export class UsersService {
     return this.prisma.userRole.create({
       data: { userId, role },
     });
+  }
+
+  async followUser(followerId: string, followingId: string) {
+    if (followerId === followingId) {
+      throw new BadRequestException('Khong the theo doi chinh minh');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: followingId },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException('Khong tim thay nguoi dung can theo doi');
+    }
+
+    await this.prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: {
+          connect: { id: followingId },
+        },
+      },
+    });
+
+    return { following: true };
+  }
+
+  async unfollowUser(followerId: string, followingId: string) {
+    await this.prisma.user.update({
+      where: { id: followerId },
+      data: {
+        following: {
+          disconnect: { id: followingId },
+        },
+      },
+    });
+
+    return { following: false };
+  }
+
+  async getFollowStatus(followerId: string, followingId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: followerId },
+      select: {
+        following: {
+          where: { id: followingId },
+          select: { id: true },
+        },
+      },
+    });
+
+    return { isFollowing: (user?.following?.length ?? 0) > 0 };
   }
 }

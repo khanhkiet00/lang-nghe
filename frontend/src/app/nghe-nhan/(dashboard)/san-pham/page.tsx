@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { motion } from 'framer-motion';
+import Pagination from '@/components/ui/Pagination';
+import { resolveImageUrl } from '@/lib/images';
 
 interface Product {
   id: string;
@@ -11,31 +16,129 @@ interface Product {
   price_retail: number;
   quantity: number;
   images: { url: string }[];
+  isActive: boolean;
+  version: number;
 }
 
 export default function ProductListPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/mine`, {
-          headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-          }
-        });
-        const json = await res.json();
-        setProducts(json.data?.items || json.data || []);
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProducts = useCallback(async (page: number, search: string, isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setIsFetching(true);
 
-    fetchProducts();
+    try {
+      const query = new URLSearchParams({
+        page: page.toString(),
+        limit: '12',
+        search: search
+      });
+      
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/mine?${query.toString()}`, {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
+        }
+      });
+      const json = await res.json();
+      const items = json.data?.items || json.data || [];
+      setProducts(items);
+      setTotalCount(json.data?.pagination?.total || items.length);
+      setTotalPages(json.data?.pagination?.totalPages || 1);
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+      toast.error('Không thể tải danh sách sản phẩm');
+    } finally {
+      setLoading(false);
+      setIsFetching(false);
+    }
   }, []);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1); // Reset to page 1 on search
+      // On first search after load, don't show full page spinner
+      fetchProducts(1, searchTerm, false); 
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm, fetchProducts]);
+
+  // Effect for page change
+  useEffect(() => {
+    if (currentPage !== 1) {
+       fetchProducts(currentPage, searchTerm, false);
+    }
+  }, [currentPage, fetchProducts]);
+
+  // Initial load
+  useEffect(() => {
+    fetchProducts(1, '', true);
+  }, []); // Only on mount
+
+  const handleToggleActive = async (product: Product) => {
+// ... existing toggle logic ...
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${product.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
+        },
+        body: JSON.stringify({
+          isActive: !product.isActive,
+          version: product.version
+        }),
+      });
+
+      if (res.ok) {
+        toast.success(`Đã ${product.isActive ? 'ẩn' : 'hiện'} tác phẩm thành công`);
+        fetchProducts(currentPage, searchTerm);
+      } else {
+        const err = await res.json();
+        toast.error('Lỗi: ' + (err.message || 'Không thể cập nhật trạng thái'));
+      }
+    } catch (error) {
+      toast.error('Lỗi kết nối');
+    }
+  };
+
+  const openDeleteModal = (productId: string) => {
+    setProductToDelete(productId);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!productToDelete) return;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
+        },
+      });
+
+      if (res.ok) {
+        toast.success('Đã xóa tác phẩm thành công');
+        fetchProducts(currentPage, searchTerm);
+      } else {
+        const err = await res.json();
+        toast.error('Lỗi: ' + (err.message || 'Không thể xóa sản phẩm'));
+      }
+    } catch (error) {
+      toast.error('Lỗi kết nối');
+    }
+  };
 
   return (
     <main className="p-8 md:p-12">
@@ -47,7 +150,7 @@ export default function ProductListPage() {
             <span className="text-on-surface-variant/40">Tất cả sản phẩm</span>
           </nav>
           <h1 className="text-4xl md:text-5xl font-extrabold text-on-surface tracking-tight">
-            Danh sách Sản phẩm
+            Kho hàng Tác phẩm
           </h1>
         </div>
         <Link
@@ -71,7 +174,7 @@ export default function ProductListPage() {
             </span>
           </div>
           <div className="text-4xl font-extrabold text-on-surface">
-            {loading ? '...' : products.length}
+            {loading ? '...' : totalCount}
           </div>
         </div>
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#1a1c1c]/5">
@@ -90,14 +193,14 @@ export default function ProductListPage() {
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#1a1c1c]/5">
           <div className="flex items-center justify-between mb-6">
             <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-              Đang hoạt động
+              Đang hiển thị
             </span>
             <span className="material-symbols-outlined text-[#52652a] p-2 bg-[#52652a]/5 rounded-lg">
-              check_circle
+              visibility
             </span>
           </div>
           <div className="text-4xl font-extrabold text-on-surface">
-             {loading ? '...' : products.length}
+             {loading ? '...' : products.filter(p => p.isActive).length}
           </div>
         </div>
       </div>
@@ -111,58 +214,68 @@ export default function ProductListPage() {
             </span>
             <input
               className="w-full pl-12 pr-4 py-3.5 bg-[#f9f9f9] border-none rounded-xl text-sm transition-all focus:ring-2 focus:ring-[#c84b31]/20 outline-none"
-              placeholder="Tìm kiếm sản phẩm..."
+              placeholder="Tìm kiếm theo tên tác phẩm..."
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
+            {isFetching && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-[#c84b31] border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className={`overflow-x-auto transition-opacity duration-300 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-y border-[#1a1c1c]/5 bg-[#fdfcfb]">
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Ảnh</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Tên Sản Phẩm</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Danh Mục</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Giá Bán</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Tồn Kho</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">D.Mục</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Giá</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Kho</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Trạng thái</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50 text-right">Thao Tác</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1a1c1c]/5">
+            <tbody className="divide-y divide-[#1a1c1c]/5 min-h-[400px]">
               {loading ? (
-                 <tr>
-                   <td colSpan={6} className="px-8 py-10 text-center text-on-surface-variant/50 italic">
-                      Đang tải danh sách tác phẩm...
+                <tr>
+                   <td colSpan={7} className="px-8 py-20 text-center">
+                      <div className="w-8 h-8 border-4 border-[#c84b31] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <p className="mt-4 text-xs font-bold text-on-surface-variant/40 uppercase tracking-widest">Đang tải di sản...</p>
                    </td>
                  </tr>
               ) : products.length === 0 ? (
                 <tr>
-                   <td colSpan={6} className="px-8 py-10 text-center text-on-surface-variant/50 italic">
-                      Chưa có sản phẩm nào.
+                   <td colSpan={7} className="px-8 py-20 text-center text-on-surface-variant/40 font-medium italic">
+                      Không tìm thấy tác phẩm nào phù hợp.
                    </td>
                  </tr>
-              ) : products.map((product) => (
+              ) : products.map((product, index) => (
                 <tr key={product.id} className="hover:bg-[#fdfcfb] transition-colors group">
+                  <td className="px-8 py-5 text-sm font-bold text-on-surface-variant/60">
+                    {(currentPage - 1) * 12 + index + 1}
+                  </td>
                   <td className="px-8 py-6">
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container-high border border-[#1a1c1c]/5">
                       <img
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        src={product.images?.[0]?.url 
-                          ? `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}${product.images[0].url}` 
-                          : 'https://via.placeholder.com/150'}
+                        src={resolveImageUrl(product.images?.[0]?.url, 'https://via.placeholder.com/150')}
                       />
                     </div>
                   </td>
                   <td className="px-8 py-6">
                     <div className="font-bold text-on-surface text-base">{product.title}</div>
-                    <div className="text-[10px] text-on-surface-variant/50 font-medium uppercase tracking-widest mt-1">
+                    <div className="text-[9px] text-on-surface-variant/50 font-medium uppercase tracking-widest mt-1">
                       Slug: {product.slug}
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#f3f3f3] text-on-surface text-[10px] font-bold uppercase tracking-widest">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#f3f3f3] text-on-surface text-[9px] font-bold uppercase tracking-widest">
                       {product.category?.name}
                     </span>
                   </td>
@@ -174,17 +287,38 @@ export default function ProductListPage() {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-2 h-2 rounded-full ${product.quantity > 5 ? 'bg-[#52652a]' : 'bg-[#ba1a1a]'}`}></div>
-                      <span className={`text-sm font-medium ${product.quantity <= 5 ? 'text-[#ba1a1a]' : ''}`}>
-                        {product.quantity} bản
+                      <span className={`text-xs font-medium ${product.quantity <= 5 ? 'text-[#ba1a1a]' : ''}`}>
+                        {product.quantity}
                       </span>
                     </div>
                   </td>
+                  <td className="px-8 py-6">
+                    <button 
+                      onClick={() => handleToggleActive(product)}
+                      className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                        product.isActive 
+                          ? 'bg-[#52652a]/10 text-[#52652a] hover:bg-[#52652a]/20' 
+                          : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm mr-1.5">
+                        {product.isActive ? 'visibility' : 'visibility_off'}
+                      </span>
+                      {product.isActive ? 'Hiện' : 'Ẩn'}
+                    </button>
+                  </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button className="p-2.5 text-on-surface-variant/40 hover:text-[#c84b31] hover:bg-[#c84b31]/5 rounded-xl transition-all">
+                      <Link 
+                        href={`/nghe-nhan/san-pham/chinh-sua/${product.id}`}
+                        className="p-2.5 text-on-surface-variant/40 hover:text-[#c84b31] hover:bg-[#c84b31]/5 rounded-xl transition-all"
+                      >
                         <span className="material-symbols-outlined text-xl">edit</span>
-                      </button>
-                      <button className="p-2.5 text-on-surface-variant/40 hover:text-[#ba1a1a] hover:bg-[#ba1a1a]/5 rounded-xl transition-all">
+                      </Link>
+                      <button 
+                        onClick={() => openDeleteModal(product.id)}
+                        className="p-2.5 text-on-surface-variant/40 hover:text-[#ba1a1a] hover:bg-[#ba1a1a]/5 rounded-xl transition-all"
+                      >
                         <span className="material-symbols-outlined text-xl">delete</span>
                       </button>
                     </div>
@@ -195,12 +329,28 @@ export default function ProductListPage() {
           </table>
         </div>
         
+        <ConfirmModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleDelete}
+          title="Xác nhận xóa Tác phẩm?"
+          message="Bạn có chắc chắn muốn xóa tác phẩm này? Dữ liệu sẽ được ẩn khỏi tất cả các trang nhưng vẫn được lưu trữ bảo mật trong hệ thống."
+          confirmText="Xóa di sản"
+          type="danger"
+        />
+        
         <div className="p-8 flex items-center justify-between border-t border-[#1a1c1c]/5">
           <span className="text-[10px] text-on-surface-variant/50 font-bold uppercase tracking-widest">
-            Hiển thị {products.length} tác phẩm
+            Hiển thị {products.length} / {totalCount} tác phẩm
           </span>
         </div>
       </div>
+
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </main>
   );
 }

@@ -1,21 +1,16 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateArtisanProfileDto } from './dto/create-artisan-profile.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class ArtisansService {
   constructor(private readonly prisma: PrismaService) {}
 
   private buildSlug(text: string): string {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+    return (
+      slugify(text, { lower: true, strict: true, trim: true }) || 'nghe-nhan'
+    );
   }
 
   async createOrUpdateProfile(userId: string, data: CreateArtisanProfileDto) {
@@ -133,7 +128,23 @@ export class ArtisansService {
     const profile = await this.prisma.artisanProfile.findUnique({
       where: { slug },
       include: {
-        user: { select: { id: true, email: true, reputationScore: true } },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            reputationScore: true,
+            products: {
+              where: { isActive: true, isDeleted: false },
+              orderBy: { createdAt: 'desc' },
+              take: 12,
+              include: {
+                category: { select: { id: true, name: true, slug: true } },
+                images: { select: { id: true, url: true } },
+              },
+            },
+          },
+        },
       },
     });
     if (!profile) {
@@ -145,6 +156,16 @@ export class ArtisansService {
   async getProfileByUserId(userId: string) {
     const profile = await this.prisma.artisanProfile.findUnique({
       where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            phone: true,
+            reputationScore: true,
+          },
+        },
+      },
     });
     if (!profile) {
       throw new NotFoundException('Không tìm thấy artisan');

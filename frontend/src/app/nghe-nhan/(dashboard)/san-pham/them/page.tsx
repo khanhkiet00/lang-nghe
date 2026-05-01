@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import { resolveImageUrl } from '@/lib/images';
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -53,6 +55,7 @@ export default function AddProductPage() {
     for (let i = 0; i < files.length; i++) {
       data.append('files', files[i]);
     }
+    data.append('folderType', 'products');
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
@@ -65,16 +68,17 @@ export default function AddProductPage() {
 
       if (res.ok) {
         const result = await res.json();
+        toast.success(`Đã tải lên ${files.length} ảnh thành công`);
         setFormData(prev => ({
           ...prev,
           images: [...prev.images, ...result.urls]
         }));
       } else {
         const err = await res.json();
-        alert('Lỗi tải ảnh: ' + (err.message || 'Dung lượng file quá lớn (tối đa 5MB)'));
+        toast.error('Lỗi tải ảnh: ' + (err.message || 'Dung lượng file quá lớn (tối đa 5MB)'));
       }
     } catch (error) {
-      alert('Lỗi kết nối khi tải ảnh');
+      toast.error('Lỗi kết nối khi tải ảnh');
     } finally {
       setUploading(false);
       // Reset input value to allow selecting same file again
@@ -92,7 +96,7 @@ export default function AddProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.images.length === 0) {
-      alert('Vui lòng tải lên ít nhất một ảnh sản phẩm.');
+      toast.error('Vui lòng tải lên ít nhất một ảnh sản phẩm.');
       return;
     }
 
@@ -103,7 +107,7 @@ export default function AddProductPage() {
     // Handle new category creation
     if (formData.category_slug === 'other') {
       if (!newCategoryName.trim()) {
-        alert('Vui lòng nhập tên danh mục mới.');
+        toast.error('Vui lòng nhập tên danh mục mới.');
         setLoading(false);
         return;
       }
@@ -121,14 +125,15 @@ export default function AddProductPage() {
         if (catRes.ok) {
           const catJson = await catRes.json();
           finalCategorySlug = catJson.data.slug;
+          toast.success('Đã tạo danh mục mới thành công');
         } else {
           const catErr = await catRes.json();
-          alert('Lỗi khi tạo danh mục: ' + (catErr.message || 'Không xác định'));
+          toast.error('Lỗi khi tạo danh mục: ' + (catErr.message || 'Không xác định'));
           setLoading(false);
           return;
         }
       } catch (err) {
-        alert('Lỗi kết nối khi tạo danh mục');
+        toast.error('Lỗi kết nối khi tạo danh mục');
         setLoading(false);
         return;
       }
@@ -148,14 +153,14 @@ export default function AddProductPage() {
       });
 
       if (res.ok) {
-        alert('Đăng sản phẩm thành công!');
+        toast.success('Đăng sản phẩm thành công!');
         router.push('/nghe-nhan/san-pham');
       } else {
         const err = await res.json();
-        alert('Lỗi: ' + (err.message || 'Không thể đăng sản phẩm'));
+        toast.error('Lỗi: ' + (err.message || 'Không thể đăng sản phẩm'));
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      toast.error('Lỗi kết nối server');
     } finally {
       setLoading(false);
     }
@@ -186,7 +191,7 @@ export default function AddProductPage() {
                 {formData.images.map((url, idx) => (
                   <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border border-black/5 bg-white">
                     <img 
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}${url}`} 
+                      src={resolveImageUrl(url)} 
                       alt={`Preview ${idx}`} 
                       className="w-full h-full object-cover"
                     />

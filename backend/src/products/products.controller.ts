@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -66,5 +67,15 @@ export class ProductsController {
       body,
     );
     return { message: 'Product updated successfully', data };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deleteProduct(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    await this.productsService.softDeleteProduct(req.user.sub, id);
+    return { message: 'Product deleted successfully' };
   }
 }
