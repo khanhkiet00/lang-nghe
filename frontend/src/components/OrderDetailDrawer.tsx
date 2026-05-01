@@ -3,6 +3,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { resolveImageUrl } from '@/lib/images';
+
+const productFallbackImage =
+  'https://images.unsplash.com/photo-1621376436442-999335805822?q=80&w=400&auto=format&fit=crop';
 
 interface OrderItem {
   id: string;
@@ -165,7 +169,7 @@ export default function OrderDetailDrawer({ order, isOpen, onClose, onUpdateStat
                     <div key={item.id} className="py-4 flex items-center gap-4">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-container border border-black/5">
                         <img 
-                          src={item.product?.images?.[0]?.url || 'https://via.placeholder.com/150'} 
+                          src={resolveImageUrl(item.product?.images?.[0]?.url, productFallbackImage)}
                           className="w-full h-full object-cover"
                           alt={item.product?.title}
                         />
@@ -184,7 +188,7 @@ export default function OrderDetailDrawer({ order, isOpen, onClose, onUpdateStat
                 </div>
                 {order.noteFromBuyer && (
                    <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-100 italic text-sm text-amber-800">
-                      " {order.noteFromBuyer} "
+                      &ldquo;{order.noteFromBuyer}&rdquo;
                    </div>
                 )}
               </section>

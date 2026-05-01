@@ -1,15 +1,58 @@
-# Các lựa chọn công nghệ quan trọng cho Nền tảng Làng Nghề
+# Decisions
 
-Dựa trên tài liệu SPEC.md, các lựa chọn công nghệ quan trọng cho dự án bao gồm:
+## 2026-05-01
 
-*   **Database:** PostgreSQL 15 (Docker trên VPS) - Tự host, thay thế Supabase.
-*   **Deployment:** Docker + VPS + Coolify - Tự host, thay thế Vercel/Railway/Upstash.
-*   **Frontend:** Next.js 14 (App Router) + TypeScript.
-*   **Backend:** NestJS 10 + TypeScript.
-*   **Auth MVP (tuần 2):** email/password + OTP (5 phút) + JWT access/refresh + RBAC via user_roles, RefreshToken lưu DB; no secrets in source, env args.
-    - **JWT tokens:** `accessToken` 15m (Bearer header) + `refreshToken` 7d (HttpOnly secure cookie)
-    - **Password hashing:** bcrypt (10 rounds)
-    - **OTP flow:** 6-digit code, 5-min expiry, sent via Resend API
-    - **RBAC:** `@Roles()` decorator + guard checking `user.roles` array (buyer, artisan, admin)
-    - **Test:** E2E coverage of register → verify-OTP → login → refresh → /me → logout (2/2 pass)- **Frontend tuần 3:** chuyển page / thành flow form + auth/login + artisans/me + upload Cloudinary + preview ảnh. Dùng image URL echo và Next.js SSR slug dynamic route.
-- **ESLint:** dùng config `next/core-web-vitals` trực tiếp (loại bỏ `next/typescript` lỗi).
+### Public Profile Links From Product Detail
+
+Product detail artisan links now prefer public user profile routes:
+
+- preferred: `/ho-so/[profile.slug]`
+- fallback: `/nghe-nhan/[artisanProfile.slug]`
+
+Reason: the user wants clicking artisan/profile areas from product detail to show the public profile data for that person.
+
+### Cart Item Selection
+
+Cart checkout is based on selected items, not all items.
+
+Reason: buyers may keep products in the cart but only purchase a subset.
+
+Implementation:
+
+- Selection state stays in the cart page.
+- Selected item IDs are written to `sessionStorage` key `langnghe_checkout_item_ids` before routing to `/thanh-toan`.
+
+### Shipping Addresses
+
+Shipping addresses are persisted in the backend instead of only localStorage.
+
+Reason: a logged-in user should be able to reuse multiple receiving addresses.
+
+Implementation:
+
+- Prisma model: `ShippingAddress`
+- API: `/api/v1/shipping-addresses`
+- Auth required for all address endpoints.
+
+### Vietnam Address Filtering
+
+Checkout address modal uses Province Open API v1 for cascading Vietnam address selection.
+
+Reason: the current form and backend address JSON use 3 administrative fields: province, district, ward.
+
+Fallback:
+
+- Manual input remains available if external API fails.
+
+### Order DTO ID Validation
+
+Backend `CreateOrderDto` accepts non-empty strings for `artisanId` and `productId` instead of `@IsUUID`.
+
+Reason: existing seed data includes ID strings that are valid Prisma `String` IDs but do not satisfy strict UUID version validation.
+
+### Auth Refresh
+
+Frontend API helper refreshes access tokens on `401` and retries once.
+
+Reason: checkout and shipping address endpoints require auth, and a stale access token caused address save to fail.
+

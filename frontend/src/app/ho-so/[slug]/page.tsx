@@ -17,6 +17,10 @@ type ProfileData = {
     following: number;
     products: number;
   };
+  reviewSummary?: {
+    total: number;
+    averageRating: number;
+  };
   profile: {
     display_name: string;
     avatar_url?: string;
@@ -64,6 +68,7 @@ export default function PublicProfilePage() {
           reputationScore: profileData.user.reputationScore,
           createdAt: profileData.user.createdAt,
           _count: profileData.user._count,
+          reviewSummary: profileData.user.reviewSummary,
           profile: {
             display_name: profileData.display_name,
             avatar_url: profileData.avatar_url,
@@ -253,7 +258,7 @@ export default function PublicProfilePage() {
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#c84b31]/50">Tác phẩm</span>
               </div>
               <div className="space-y-1">
-                <span className="block text-4xl font-black text-[#c84b31]">0</span>
+                <span className="block text-4xl font-black text-[#c84b31]">{user?.reviewSummary?.total || 0}</span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#c84b31]/50">Đánh giá</span>
               </div>
               <div className="space-y-1">

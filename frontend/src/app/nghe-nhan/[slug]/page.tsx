@@ -30,6 +30,10 @@ interface ArtisanProfile {
     email: string;
     phone?: string | null;
     reputationScore: number;
+    reviewSummary?: {
+      total: number;
+      averageRating: number;
+    };
     products: Product[];
   };
 }
@@ -137,7 +141,10 @@ export default async function ArtisanProfilePage({
                 </span>
               )}
               <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 font-bold">
-                Uy tín {profile.user.reputationScore}
+                Uy tín {profile.user.reputationScore.toFixed(1).replace('.0', '')}
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/10 px-4 py-2 font-bold">
+                {profile.user.reviewSummary?.total || 0} đánh giá
               </span>
             </div>
           </div>

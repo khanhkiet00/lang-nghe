@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#007f9d",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed-dim": "#ffb4a4",
+                    "on-background": "#1a1c1c",
+                    "surface-bright": "#f9f9f9",
+                    "tertiary-fixed": "#b8eaff",
+                    "on-primary-fixed-variant": "#891e07",
+                    "inverse-surface": "#2f3131",
+                    "surface-container-low": "#f3f3f3",
+                    "background": "#f9f9f9",
+                    "surface-tint": "#aa361e",
+                    "on-secondary-container": "#576b2f",
+                    "surface-container": "#eeeeee",
+                    "on-secondary-fixed-variant": "#3b4d14",
+                    "on-primary-fixed": "#3e0500",
+                    "surface-container-high": "#e8e8e8",
+                    "surface-container-highest": "#e2e2e2",
+                    "primary-container": "#c84b31",
+                    "tertiary-fixed-dim": "#77d2f3",
+                    "on-secondary-fixed": "#141f00",
+                    "on-tertiary-fixed": "#001f28",
+                    "surface-dim": "#dadada",
+                    "secondary-container": "#d4eca2",
+                    "primary-fixed": "#ffdad3",
+                    "on-surface-variant": "#58413c",
+                    "inverse-primary": "#ffb4a4",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "tertiary": "#00647d",
+                    "on-surface": "#1a1c1c",
+                    "secondary": "#52652a",
+                    "secondary-fixed-dim": "#b8cf88",
+                    "inverse-on-surface": "#f0f1f1",
+                    "surface-variant": "#e2e2e2",
+                    "on-tertiary-container": "#fafdff",
+                    "outline-variant": "#e0bfb9",
+                    "on-tertiary-fixed-variant": "#004d61",
+                    "error": "#ba1a1a",
+                    "surface": "#f9f9f9",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "outline": "#8c716b",
+                    "primary": "#a6331b",
+                    "on-error": "#ffffff",
+                    "secondary-fixed": "#d4eca2",
+                    "on-primary-container": "#fffbff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "display": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .no-border-rule { border: none !important; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] no-border-rule">
+<nav class="flex justify-between items-center px-8 h-20 max-w-[1440px] mx-auto font-manrope antialiased tracking-tight">
+<div class="text-2xl font-extrabold text-stone-900 tracking-tighter">Làng Nghề Platform</div>
+<div class="hidden md:flex items-center space-x-10">
+<a class="text-[#C84B31] font-bold border-b-2 border-[#C84B31] pb-1" href="#">Khám phá</a>
+<a class="text-stone-600 hover:text-[#C84B31] transition-colors" href="#">Nghệ nhân</a>
+<a class="text-stone-600 hover:text-[#C84B31] transition-colors" href="#">Câu chuyện</a>
+<a class="text-stone-600 hover:text-[#C84B31] transition-colors" href="#">Sự kiện</a>
+</div>
+<div class="flex items-center space-x-6">
+<button class="text-stone-600 hover:opacity-80 transition-all duration-300">
+<span class="material-symbols-outlined">shopping_cart</span>
+</button>
+<button class="text-stone-600 hover:opacity-80 transition-all duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/20">
+<img alt="Avatar người dùng" class="w-full h-full object-cover" data-alt="A close-up professional portrait of a modern Vietnamese user for a profile avatar. The lighting is soft and natural, coming from a large window. The background is a minimalist, clean studio setting with warm ivory tones, aligning with the Modern Kiln aesthetic. The person has a friendly, engaged expression, representing a premium digital platform user." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbSibcYna9bbADd2UB-180XTYg-OYDJrOFiSKCWxOlMMRcIPkHeTR0yJ8LuHk8PS8oDcLW41mbXJev7PDzA5ERaf2hbpGN85HvaddzwmsiPBLz7GFd08DU0aAzhuj83dTJPulwN5TJiP6EXwWeMx-TKvl6XpkQ_saseQICx_NiMDS7rztNi3pUNa084fDv6hesrkDElIBy2CYiTLPMGOPAr4-LBnnTcUBcA3fV1zrJPxSjoNpkR6FUcVi_yj7WpGxZ2fue8II2ygOo"/>
+</div>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-20 px-8 max-w-[1440px] mx-auto">
+<!-- Product Detail Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+<!-- Left: Product Gallery -->
+<div class="space-y-6">
+<div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low group">
+<img alt="Bình gốm thủ công" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A large, detailed close-up of a handcrafted ceramic vase with organic textures and subtle terracotta glazes. The vase is positioned in a sunlit corner of a minimalist studio with soft shadows and warm, natural light highlighting the artisan's fingerprints and the raw clay texture. The aesthetic is clean, editorial, and sophisticated, using a palette of earthy reds, muted olives, and charcoal ink tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDVzGTYcxed-UPn8mohGH3wc9sGWoqVJYkyLxJD2fnAFNVSUws8S5Kq9dFE5iaY7JB6MHC9TE2cGR53_lWCiJp8Zh5-2hZPzZES1fk26bPlHRPhUWE4Smj74WDYbi5dfZCECv0mMxNukzcgIk-lMis6ino5BIP1owLXsDphBWW6acXhSK7YdNBnB6BrniEC3ZgLjIGaR7ROHsb2nY4fbUYThG4gN3e087k54JAQR6wkFscIC6nAyyBUfoh-SFv5yEAF3-Ajw4tXlEp"/>
+</div>
+<div class="grid grid-cols-4 gap-4">
+<div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all ring-2 ring-primary">
+<img alt="Góc bình gốm 1" class="w-full h-full object-cover" data-alt="A detailed macro shot focusing on the neck and rim of a handmade ceramic vessel. The lighting is high-key and soft, emphasizing the irregular, organic edges of the kiln-fired pottery. The color palette reflects the natural pigments of earth and fire, with rich terracotta and subtle charcoal details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyIHyUMpnKgizR8DO2DUqu_DiIen_TaMXVsZwiJJPtlgbld75-zWUD1T1jWNzAo7jgyDlmumCIhPdq0j4XbBc60lUFEdsXs9ju-BhdQn2SIl51dJgRjwe-iW4EXQngISYDfg-1c7QkGHvywZV1Qw0xDdMpXjN1qmHO0IX-4Q_7i_jn5KcMnPj-Hsx4bSW5DSQCNThoE6LIf2-UW3MieNLCkCdySB8v53KB4Yn6iX8kQNdowD96qgFPJAzQcBWr_OY8l3p9SeZfF3Y2"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all">
+<img alt="Góc bình gốm 2" class="w-full h-full object-cover" data-alt="A macro photography shot of the base of a ceramic piece, showing the raw texture of the unglazed clay. The atmosphere is serene and artistic, set against a neutral, warm background that emphasizes the handcrafted quality of the work. The soft-focus background maintains a gallery-like feeling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoX1cKMkafhf5756JvH526Osqa0QtxIDK8zco8dMXYKNs0CA7nNfa0-9Pn_DtEvgaQ921muEkrcKhqZApk-qNocpERH4TkjW8_jSu1YG39mE97ZPeUib70N94nu9NHdZg6IbH3vpPxrILfVMIzT_G8PwfMX1xyA-xJ6rZ1Sdbtq9iBBPVC0jdXZJRsSJ4L-BffdZk_GumvvD3d_w7kIPvjiVjOH9ks4eDwOFsIrhxMn8Ywka1qxrWp08mozW9zH6OgrpcubJUwXK2e"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all">
+<img alt="Góc bình gốm 3" class="w-full h-full object-cover" data-alt="An artistic shot of a ceramic bowl being held by calloused, artisan hands covered in light clay dust. The lighting is warm and directional, creating a sense of history and craft. The scene is intimate, focusing on the connection between the maker and the object." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa3xhpPtt_e6q0z6QO58Jh1yGE8lTOYjABHpfoxRRy5qmZdsYHjGy7yHu8_i4w-Zz2WJ-avmybHU1WAz_vxIu_xPfTfes9yjQXDSUff37pJQLXOIC_AuBWe-ZMwHoHQIbeQuM4u5ahCY1S5M-aQF111r9C4YjZSRkn9tmedcZc4Q3NJYHXdHfT8HTQhtI3ghn-vXAhr-8bfQ8HfjV2dZaQUnom3y6yabHM20v-ixG90LLCvqNXNtrS6kgYnPxQwSNA8tMjIZyp9QB8"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-all">
+<img alt="Góc bình gốm 4" class="w-full h-full object-cover" data-alt="A lifestyle product shot of a ceramic collection arranged on a wooden table in a brightly lit, minimalist kitchen. The sunlight filters through a window, casting soft shadows. The overall mood is peaceful and evokes a sense of modern Vietnamese living." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9UXz__nzkVFS3omTnE5OWvziQ9NU4kjywJ8QHMW_RvvmxnkDTWXIhCOsyMmhXiX8YJH55SD0GDXu7DyMvdEgKN3Qxc3-LYAurtpXQc8SRMJJJhgwtjr4-ZximcHRdSo56x2X3iPS7moyalnbY-mUB-E1X5rxDT-M5FBGG-Q_VqYlHqwKFr1cEg5HumbE5llqc5rdovZlABODS4078bzmx81rbRgAl2Bm0iaUxrKBvAGmgyLvRVQmPm-ed83wGaRs13hN3oFxxAXHX"/>
+</div>
+</div>
+</div>
+<!-- Right: Product Information -->
+<div class="flex flex-col h-full justify-start space-y-8">
+<div class="space-y-4">
+<span class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold tracking-widest uppercase">BÁT TRÀNG HERITAGE</span>
+<h1 class="text-5xl font-extrabold text-on-surface leading-tight tracking-tighter">Bình Gốm Men Hỏa Biến "Vũ Điệu Lửa"</h1>
+<div class="flex items-center space-x-4">
+<span class="text-3xl font-medium text-primary tracking-tight">2.450.000đ</span>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<div class="flex items-center space-x-1">
+<span class="material-symbols-outlined text-yellow-500" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold">4.9</span>
+<span class="text-on-surface-variant text-sm">(128 đánh giá)</span>
+</div>
+</div>
+</div>
+<!-- Artisan Credit -->
+<div class="flex items-center p-4 bg-surface-container-low rounded-xl transition-all hover:bg-surface-container-high cursor-pointer group">
+<div class="w-12 h-12 rounded-full overflow-hidden mr-4 ring-2 ring-primary/20">
+<img alt="Nghệ nhân Nguyễn Văn A" class="w-full h-full object-cover" data-alt="A dignified portrait of an elderly Vietnamese master potter in his workshop. He wears a simple indigo-dyed shirt, and his face shows deep character and wisdom. The background is filled with blurred shelves of clay vessels and the warm glow of a traditional kiln, creating a sense of heritage and mastery." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADOCUjXCSfkkjzyn8SnFqRwATZxJQnSr0o7noxqPG7Hf6NDXCk0G9mEslYkugMO5lWYfjQEe9sl5Lm-S2UeM_rcCubO-6OYbgcchBlW5sffvfEIl7qYXofFmDglZlViPM7a-_kLKJCxbTuJvx8prfC3ATAg5rvrAsAVMEvB4IPA_ZBnNbuEFTH7HVvz1-e9tG1c4fBVYQD9i2Qm49saFFcMFTMHvwyWygzep87pjdqeU9sTRvG6Lh4PW2YYjlD9jhB_dQR5Y-f0rom"/>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant uppercase font-bold tracking-wider">Nghệ nhân thực hiện</p>
+<p class="text-lg font-bold group-hover:text-primary transition-colors">Nguyễn Văn A</p>
+</div>
+<span class="material-symbols-outlined ml-auto text-on-surface-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+<!-- Storytelling Description -->
+<div class="space-y-4">
+<h3 class="text-sm font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">Câu chuyện sản phẩm</h3>
+<p class="text-lg text-on-surface-variant leading-relaxed font-light italic">
+                        "Mỗi chiếc bình không chỉ là đất và lửa, mà là linh hồn của phù sa sông Hồng được tôi luyện qua nhiệt độ hàng ngàn độ C. Men hỏa biến không bao giờ có hai bản sao hoàn toàn giống nhau, tạo nên một độc bản duy nhất cho không gian của bạn."
+                    </p>
+</div>
+<!-- Variants selection -->
+<div class="space-y-4">
+<h3 class="text-sm font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">Kích thước</h3>
+<div class="flex gap-4">
+<button class="px-6 py-3 border-2 border-primary text-primary rounded-xl font-bold transition-all">Size M</button>
+<button class="px-6 py-3 border-2 border-outline-variant/30 text-on-surface-variant rounded-xl font-bold hover:border-primary/50 transition-all">Size L (+250k)</button>
+</div>
+</div>
+<!-- Actions -->
+<div class="grid grid-cols-2 gap-4 pt-6">
+<button class="py-5 px-8 rounded-xl bg-primary-container text-on-primary font-bold text-lg hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                        Thêm vào giỏ hàng
+                    </button>
+<button class="py-5 px-8 rounded-xl bg-surface-container-highest text-on-surface font-bold text-lg hover:opacity-80 active:scale-95 transition-all">
+                        Mua ngay
+                    </button>
+</div>
+<!-- Trust Badges -->
+<div class="flex justify-between py-6 border-t border-outline-variant/10">
+<div class="flex flex-col items-center space-y-1">
+<span class="material-symbols-outlined text-secondary text-3xl">verified_user</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Độc bản 100%</span>
+</div>
+<div class="flex flex-col items-center space-y-1">
+<span class="material-symbols-outlined text-secondary text-3xl">local_shipping</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Giao toàn cầu</span>
+</div>
+<div class="flex flex-col items-center space-y-1">
+<span class="material-symbols-outlined text-secondary text-3xl">eco</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Vật liệu tự nhiên</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Asymmetric Detail Sections -->
+<section class="mt-32 space-y-32">
+<!-- Artisan Story -->
+<div class="flex flex-col md:flex-row gap-16 items-center">
+<div class="w-full md:w-5/12 order-2 md:order-1">
+<h2 class="text-4xl font-extrabold mb-8 tracking-tighter">Bàn tay nhào nặn lịch sử</h2>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-6">
+                        Nghệ nhân Nguyễn Văn A đã dành hơn 40 năm tại làng gốm Bát Tràng để nghiên cứu về dòng men hỏa biến - một loại men huyền bí biến ảo màu sắc theo nhiệt độ lò nung.
+                    </p>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                        Công thức men được giữ kín qua ba thế hệ, sử dụng các loại khoáng thạch tự nhiên từ vùng núi phía Bắc Việt Nam, kết hợp cùng kỹ thuật điều khiển lửa thượng thừa để tạo ra những mảng màu như mây trời và hổ phách.
+                    </p>
+<a class="text-primary font-bold border-b-2 border-primary/20 hover:border-primary transition-all pb-1 uppercase tracking-widest text-sm" href="#">Tìm hiểu thêm về Nghệ nhân</a>
+</div>
+<div class="w-full md:w-7/12 order-1 md:order-2">
+<div class="rounded-xl overflow-hidden aspect-[16/9] shadow-xl">
+<img alt="Quy trình chế tác" class="w-full h-full object-cover" data-alt="A wide, cinematic shot of a traditional pottery workshop in Bát Tràng. Sunbeams cut through the dusty air, illuminating rows of drying ceramic vases on wooden planks. The floor is covered in fine terracotta dust, and the atmosphere is heavy with the history of craftsmanship. The aesthetic is warm, earthy, and richly textured, following the Modern Kiln design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAe8MKdizjO7yTOPyrXv8wm3O-_V4grgKaudcJcolqyQvvcwuM5ayK5iUbQjUFwnInyoQBSgvKDIkOWE09KTtpptoXjYoTfcEH582fUpwMRDW479h8zCiSHEpACA7Lz0xdfoAzb6g81woViVM9f0fMJbFV-p4Dimh_B7BnrJe7YQWS1tEHXN3mgcBuiJz4lK2_n3tM6KdgRkQ3FEm4wl7gnqRNtcuJVr8JNXXjna6R7WFi2LmqqM4ef_fyOcLaEYSTnd8RuneLYU59J"/>
+</div>
+</div>
+</div>
+<!-- Crafting Process (Bento-style Grid) -->
+<div class="space-y-12">
+<div class="text-center max-w-2xl mx-auto space-y-4">
+<h2 class="text-4xl font-extrabold tracking-tighter">Quy trình 7 bước tinh xảo</h2>
+<p class="text-on-surface-variant">Từ đất sét trắng tinh khôi đến tác phẩm nghệ thuật hoàn mỹ</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="p-8 bg-surface-container-low rounded-xl space-y-4 hover:shadow-lg transition-all border border-outline-variant/5">
+<span class="text-5xl font-black text-primary/10">01</span>
+<h4 class="text-xl font-bold">Lọc đất</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Sử dụng đất sét trắng đặc trưng của vùng, được lọc qua 4 bể lắng để loại bỏ tạp chất hoàn toàn.</p>
+</div>
+<div class="p-8 bg-surface-container-low rounded-xl space-y-4 hover:shadow-lg transition-all border border-outline-variant/5">
+<span class="text-5xl font-black text-primary/10">02</span>
+<h4 class="text-xl font-bold">Tạo hình trên bàn xoay</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Nghệ nhân trực tiếp vuốt tay tạo hình, đảm bảo mỗi đường cong đều mang nhịp thở của đôi tay.</p>
+</div>
+<div class="p-8 bg-surface-container-low rounded-xl space-y-4 hover:shadow-lg transition-all border border-outline-variant/5">
+<span class="text-5xl font-black text-primary/10">03</span>
+<h4 class="text-xl font-bold">Nung lửa chậm</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed">Quy trình nung kéo dài 72 giờ với nhiệt độ tăng dần đến 1300 độ C để men đạt độ biến ảo tối đa.</p>
+</div>
+</div>
+</div>
+<!-- Reviews Section -->
+<div class="space-y-12">
+<div class="flex justify-between items-end">
+<h2 class="text-4xl font-extrabold tracking-tighter">Đánh giá từ giới mộ điệu</h2>
+<button class="text-primary font-bold hover:underline">Xem tất cả 128 đánh giá</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Review 1 -->
+<div class="p-10 bg-white shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] rounded-xl space-y-6">
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest"></div>
+<div>
+<p class="font-bold">Lê Minh Tâm</p>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest font-bold">Người sưu tầm</p>
+</div>
+</div>
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant italic leading-relaxed">
+                            "Bình gốm ở ngoài đẹp hơn trong ảnh rất nhiều. Những vệt màu men loang lổ tự nhiên tạo cảm giác rất sang trọng cho không gian phòng khách của tôi. Một món quà tuyệt vời từ bàn tay nghệ nhân Việt."
+                        </p>
+</div>
+<!-- Review 2 -->
+<div class="p-10 bg-white shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)] rounded-xl space-y-6">
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest"></div>
+<div>
+<p class="font-bold">Anna Nguyễn</p>
+<p class="text-xs text-on-surface-variant uppercase tracking-widest font-bold">Nhà thiết kế nội thất</p>
+</div>
+</div>
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant italic leading-relaxed">
+                            "Tôi thường xuyên sử dụng các sản phẩm từ Làng Nghề Platform cho các dự án villa cao cấp. Độ hoàn thiện rất tốt, đóng gói kỹ lưỡng và câu chuyện phía sau mỗi sản phẩm luôn khiến khách hàng của tôi hài lòng."
+                        </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-stone-100 w-full rounded-t-[1.5rem] mt-20 tonal-layering-shift">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 px-12 py-16 max-w-7xl mx-auto font-manrope text-sm">
+<div class="space-y-6">
+<div class="text-lg font-bold text-stone-800">Làng Nghề Platform</div>
+<p class="text-stone-500 leading-relaxed">© 2024 Làng Nghề Platform. Gìn giữ hồn cốt Việt.</p>
+<div class="flex space-x-4">
+<span class="material-symbols-outlined text-stone-400 hover:text-[#C84B31] cursor-pointer">social_leaderboard</span>
+<span class="material-symbols-outlined text-stone-400 hover:text-[#C84B31] cursor-pointer">retweet</span>
+</div>
+</div>
+<div class="space-y-6">
+<h4 class="font-bold text-stone-800 uppercase tracking-widest text-xs">Về chúng tôi</h4>
+<ul class="space-y-3">
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Câu chuyện thương hiệu</a></li>
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Mạng lưới nghệ nhân</a></li>
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Tuyển dụng</a></li>
+</ul>
+</div>
+<div class="space-y-6">
+<h4 class="font-bold text-stone-800 uppercase tracking-widest text-xs">Hỗ trợ khách hàng</h4>
+<ul class="space-y-3">
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Chính sách nghệ nhân</a></li>
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Bảo tồn văn hóa</a></li>
+<li><a class="text-stone-500 hover:text-[#C84B31] transition-all duration-200" href="#">Vận chuyển &amp; Đổi trả</a></li>
+</ul>
+</div>
+<div class="space-y-6">
+<h4 class="font-bold text-stone-800 uppercase tracking-widest text-xs">Liên hệ</h4>
+<ul class="space-y-3">
+<li class="text-stone-500">Email: hello@langnghe.vn</li>
+<li class="text-stone-500">Hotline: 1900 6789</li>
+<li class="text-stone-500">Địa chỉ: Quận 1, TP. Hồ Chí Minh</li>
+</ul>
+</div>
+</div>
+</footer>
+</body></html>

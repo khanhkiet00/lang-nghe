@@ -25,6 +25,12 @@ export class UsersController {
     return { message: 'Profile updated successfully', data };
   }
 
+  @Get('public/:slug')
+  async getPublicProfile(@Param('slug') slug: string) {
+    const data = await this.usersService.getPublicProfileBySlug(slug);
+    return { data };
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post(':id/follow')
   async follow(

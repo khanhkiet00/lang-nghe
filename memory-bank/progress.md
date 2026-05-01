@@ -1,44 +1,57 @@
-# Lộ trình phát triển Nền tảng Làng Nghề
+# Progress
 
-## 12.1 MVP - Tháng 1 đến 3
+## Completed
 
-| Tuần | Công việc kỹ thuật | Kết quả kiểm tra |
-|---|---|---|
-| 1 | Setup: Docker Compose (PG+Redis+Nginx+Adminer), folder structure, ESLint, Prettier, Prisma schema | Hoàn thành: docker-compose up, backend+frontend skeleton, Prisma migrate, Health API, nginx gateway |
-| 2 | Auth: đăng ký + OTP (Resend) + đăng nhập + JWT (access+refresh) + RBAC guard | ✅ Hoàn thành: register + verify-OTP + login + refresh + RBAC @Roles guard, HttpOnly cookies, E2E tests 2/2 đạt |
-| 3 | Hồ sơ: tạo profile, upload ảnh (Cloudinary signed URL), slug SEO, trang nghe-nhan/[slug] SSR | Hoàn tất: frontend /page.tsx form + logic auth/login, artisan/me, upload Cloudinary, SSR slug page (404 nếu chưa có data) |
-| 4 | Sản phẩm: CRUD + ảnh + tag + FTS (pg_trgm + unaccent) + trang san-pham/[slug] SSR | Tìm kiếm tiếng Việt có dấu hoạt động, trang SP có SEO |
-| 5 | Feed: hiển thị SP, lọc, sắp xếp, infinite scroll. Giỏ hàng (localStorage + DB khi đăng nhập). | Feed hiện đúng, giỏ hàng giữ sau khi refresh |
-| 6 | Đặt hàng: tạo đơn (tách theo nghệ nhân, optimistic lock tồn kho), tính phí ship thủ công, email xác nhận | 2 SP từ 2 nghệ nhân → 2 đơn riêng, tồn kho trừ đúng, email gửi thành công |
-| 7 | Trạng thái đơn: timeline cập nhật, logistics thủ công (nhập mã vận đơn), 7 ngày tự động xác nhận | Người mua thấy lịch sử đơn, nghệ nhân nhập được mã vận đơn |
-| 8 | Đánh giá: mở sau completed, ẩn đến khi cả 2 xong, tính điểm uy tín, ngưỡng tự động | Đánh giá hiện đúng, điểm tính theo công thức, SP tự ẩn khi < 3.0 |
-| 9 | Chat: Socket.io, lưu lịch sử, biểu tượng đang gõ, thông báo tin nhắn mới | Tin nhắn tới < 1 giây, thông báo hiện khi có tin mới |
-| 10 | B2B: RFQ (có thời hạn), báo giá ẩn đến hết hạn, hợp đồng OTP + PDF + SHA-256 | Ký hợp đồng bằng OTP hoạt động, hash lưu vào DB và có thể verify |
-| 11 | Dashboard 3 role, Admin cơ bản, ngưỡng tự động (ẩn SP, tạm khóa), Custom Order cơ bản | Admin xem được thống kê, có thể khóa user |
-| 12 | Fix bug, SEO audit, Cloudflare Tunnel test với người dùng thật, deploy lên VPS + Coolify | Có link https:// thật chạy 24/7, SSL hợp lệ, 5 người dùng cùng lúc OK |
+- Home page reads backend products and renders product cards/trending products.
+- Product detail page exists at `/san-pham/[slug]`.
+- Product detail nav/header aligned with home page.
+- Product detail artisan card is data-driven and links to public profile when possible.
+- Product detail recommendations use `ProductCard` styling.
+- Cart page exists at `/gio-hang`.
+- Cart header aligned with home page.
+- Cart supports selecting individual products.
+- Cart supports select all.
+- Cart summary only counts selected products.
+- Cart remove button uses confirmation modal before deleting an item.
+- Checkout page created at `/thanh-toan`.
+- Checkout reads selected cart items from sessionStorage/localStorage.
+- Checkout displays selected items and order summary.
+- Checkout supports COD and bank transfer values.
+- Checkout allows buyer note.
+- Checkout submits to backend `POST /orders`.
+- Shipping address backend model and migration added.
+- Shipping address API added:
+  - `GET /shipping-addresses`
+  - `POST /shipping-addresses`
+  - `PATCH /shipping-addresses/:id`
+  - `DELETE /shipping-addresses/:id`
+- Checkout address modal supports add/edit saved addresses.
+- Address modal supports Vietnam province/district/ward cascading filters.
+- Frontend API helper refreshes tokens on 401.
+- Backend login returns `refreshToken` in JSON for localStorage-based frontend refresh flow.
+- Backend order DTO relaxed ID validation from UUID to non-empty string.
+- Prisma migration `20260501062000_add_shipping_addresses` created and applied.
+- Prisma client generated after adding `ShippingAddress`.
 
-## 12.2 Beta - Tháng 4 đến 6
+## Verified
 
-- Logistics GHN: tích hợp API (tính phí, tạo vận đơn tự động, webhook tracking realtime)
-- Thanh toán VNPay hoặc MoMo Sandbox → Production
-- Soft Escrow: giữ tiền sau khi thanh toán, giải ngân khi hoàn thành
-- Ví số dư nghệ nhân: tích lũy từ đơn, admin duyệt rút tiền
-- BullMQ cho email batch và webhook GHN bất đồng bộ
-- Feed cá nhân hóa cơ bản (theo danh mục đã xem, nghệ nhân đã follow)
-- Custom Order với escrow
-- SEO nâng cao: Sitemap, structured data (JSON-LD), Open Graph
+- `frontend`: `npx.cmd tsc --noEmit` passes.
+- `backend`: `npx.cmd tsc --noEmit` passes.
+- `backend`: `npx.cmd prisma validate` passed after adding `ShippingAddress`.
+- `backend`: `npx.cmd prisma migrate deploy` successfully applied shipping address migration.
 
-## 12.3 V1.0 - Tháng 7 đến 9
+## Known Manual Steps
 
-- Thêm GHTK (đơn vị vận chuyển thứ 2 - phủ rộng nông thôn tốt hơn)
-- Rút tiền tự động bằng VietQR API - loại bỏ bước admin duyệt
-- Blockchain: bật feature flag blockchain_enabled → ProductNFT, ArtisanID trên Polygon
-- Tối ưu hiệu suất: cache Redis cho feed, phân tích query chậm, thêm index nếu cần
+- Restart backend after backend changes.
+- Log in again after auth changes so `langnghe_refresh_token` is stored.
+- If cart/order data predates the latest cart flow, clear cart and add products again from product detail pages.
 
-## 12.4 Mở rộng - Tháng 10+
+## Remaining Work
 
-- Thêm nhóm người dùng mới (nếu có nhu cầu thực tế)
-- Đa ngôn ngữ Việt/Anh (next-intl)
-- AI gợi ý SP (collaborative filtering đơn giản bằng PostgreSQL)
-- Zalo ZNS thêm vào kênh thông báo (không thay thế email)
-- Báo cáo thị trường: bán insights xu hướng thủ công cho doanh nghiệp
+- Build a real order success/history link after checkout instead of only showing success state.
+- Add delete address confirmation UI if needed.
+- Add address search/autocomplete polish.
+- Implement actual payment integration for bank transfer/QR if required.
+- Support multi-artisan checkout by splitting into multiple orders.
+- Add more robust e2e tests for cart -> checkout -> order creation.
+

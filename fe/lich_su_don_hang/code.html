@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#f0f1f1",
+                      "background": "#f9f9f9",
+                      "tertiary": "#00647d",
+                      "surface-dim": "#dadada",
+                      "error": "#ba1a1a",
+                      "secondary-fixed": "#d4eca2",
+                      "outline-variant": "#e0bfb9",
+                      "on-surface-variant": "#58413c",
+                      "on-tertiary-fixed-variant": "#004d61",
+                      "on-tertiary-container": "#fafdff",
+                      "on-surface": "#1a1c1c",
+                      "primary-container": "#c84b31",
+                      "on-secondary-fixed-variant": "#3b4d14",
+                      "on-error": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed": "#3e0500",
+                      "inverse-primary": "#ffb4a4",
+                      "tertiary-fixed": "#b8eaff",
+                      "secondary-container": "#d4eca2",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed-dim": "#b8cf88",
+                      "on-primary-container": "#fffbff",
+                      "primary": "#a6331b",
+                      "on-background": "#1a1c1c",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#001f28",
+                      "primary-fixed-dim": "#ffb4a4",
+                      "surface-container-high": "#e8e8e8",
+                      "on-secondary-container": "#576b2f",
+                      "surface-tint": "#aa361e",
+                      "surface": "#f9f9f9",
+                      "on-secondary-fixed": "#141f00",
+                      "surface-bright": "#f9f9f9",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#f3f3f3",
+                      "inverse-surface": "#2f3131",
+                      "tertiary-fixed-dim": "#77d2f3",
+                      "surface-container": "#eeeeee",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-fixed-variant": "#891e07",
+                      "tertiary-container": "#007f9d",
+                      "surface-container-highest": "#e2e2e2",
+                      "on-tertiary": "#ffffff",
+                      "outline": "#8c716b",
+                      "primary-fixed": "#ffdad3",
+                      "secondary": "#52652a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Manrope"],
+                      "display": ["Manrope"],
+                      "body": ["Manrope"],
+                      "label": ["Manrope"]
+              }
+            },
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-stone-50/70 dark:bg-stone-950/70 backdrop-blur-xl shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)]">
+<div class="flex justify-between items-center w-full px-8 py-4 max-w-[1440px] mx-auto">
+<div class="text-2xl font-extrabold tracking-tighter text-orange-900 dark:text-orange-50">Làng Nghề</div>
+<div class="hidden md:flex items-center space-x-8 font-manrope text-sm tracking-wide uppercase">
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:text-orange-900 dark:hover:text-stone-100 transition-all duration-300" href="#">Collections</a>
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:text-orange-900 dark:hover:text-stone-100 transition-all duration-300" href="#">Artisans</a>
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:text-orange-900 dark:hover:text-stone-100 transition-all duration-300" href="#">Stories</a>
+<a class="text-stone-600 dark:text-stone-400 font-medium hover:text-orange-900 dark:hover:text-stone-100 transition-all duration-300" href="#">Workshops</a>
+</div>
+<div class="flex items-center space-x-6">
+<button class="material-symbols-outlined text-orange-700 dark:text-orange-500 hover:bg-stone-200/40 p-2 rounded-full transition-all">shopping_cart</button>
+<button class="material-symbols-outlined text-orange-700 dark:text-orange-500 hover:bg-stone-200/40 p-2 rounded-full transition-all" data-weight="fill" style="font-variation-settings: 'FILL' 1;">account_circle</button>
+</div>
+</div>
+</nav>
+<main class="pt-28 pb-20 px-6 max-w-[1000px] mx-auto min-h-screen">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="text-4xl md:text-5xl font-bold tracking-tight text-on-surface mb-2">Đơn hàng của tôi</h1>
+<p class="text-on-surface-variant font-medium">Theo dõi và quản lý các tác phẩm thủ công bạn đã chọn.</p>
+</header>
+<!-- Order Filter Tabs -->
+<div class="flex items-center space-x-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+<button class="px-6 py-2 rounded-full bg-primary text-on-primary font-semibold whitespace-nowrap transition-all shadow-md">Tất cả</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-on-surface-variant font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">Chờ thanh toán</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-on-surface-variant font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">Đang xử lý</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-on-surface-variant font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">Đang giao</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-on-surface-variant font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">Hoàn thành</button>
+<button class="px-6 py-2 rounded-full bg-surface-container-low text-on-surface-variant font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">Đã hủy</button>
+</div>
+<!-- Order List -->
+<div class="space-y-8">
+<!-- Order Card 1: Completed -->
+<div class="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.06)] hover:shadow-[0_20px_40px_-12px_rgba(26,28,28,0.12)] transition-all group">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<span class="text-sm font-bold tracking-widest text-on-surface-variant uppercase">#DH-10294</span>
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+<span class="text-sm font-medium text-on-surface-variant">24 Tháng 10, 2023</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold uppercase tracking-wider">Hoàn thành</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-on-surface-variant block uppercase tracking-widest mb-1">Tổng cộng</span>
+<span class="text-2xl font-extrabold text-primary">2.450.000₫</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 mb-8 items-start">
+<div class="relative w-full sm:w-32 aspect-[4/5] rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Bình gốm Bát Tràng" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up photograph of a handcrafted Vietnamese ceramic vase with a cracked celadon glaze, sitting on a rustic wooden table. The lighting is soft and natural, coming from a side window, highlighting the organic texture and subtle green hues. The background is a minimalist studio with neutral warm tones, reflecting a premium editorial craft aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA02E06NifyCIynojlfi1GKnEuwljJZjm4_QFGKt3doKSwleSavlKAlT6BhSAtysUUBY6VuCyvRq5mUF8TAbOOamPsAowBMP_7xqLgxktlmp60Y2ooO1J2ibk41myScM68eIvhoaFc1PB_2ZS4oV7hUEP5maF6_k57UWWlYiOtOOyy90E9nPfa-HUrhboghz9O-nbsoBGRjIrjrXF6ioB3TjYtD8mKNsQHn5Jmft5q4RbTjnSUflsUCzzFHHJvWPYVKkyLhFx85SI2j"/>
+</div>
+<div class="flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-1">Bình Gốm Men Rạn Cổ</h3>
+<p class="text-secondary font-medium text-sm mb-4">Xưởng Gốm Bát Tràng</p>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant text-sm">Số lượng: 01</span>
+<span class="font-bold">2.450.000₫</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 pt-6 border-t border-surface-container-high">
+<button class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant transition-all">Mua lại</button>
+<button class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-on-primary font-bold shadow-md hover:opacity-90 transition-all">Đánh giá</button>
+</div>
+</div>
+<!-- Order Card 2: Shipping -->
+<div class="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.06)] transition-all">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<span class="text-sm font-bold tracking-widest text-on-surface-variant uppercase">#DH-11042</span>
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+<span class="text-sm font-medium text-on-surface-variant">12 Tháng 11, 2023</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-secondary text-on-secondary text-xs font-bold uppercase tracking-wider">Đang giao</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-on-surface-variant block uppercase tracking-widest mb-1">Tổng cộng</span>
+<span class="text-2xl font-extrabold text-primary">850.000₫</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 mb-8 items-start">
+<div class="relative w-full sm:w-32 aspect-[4/5] rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Khay gỗ xà cừ" class="w-full h-full object-cover" data-alt="A beautifully carved dark wood serving tray showcasing intricate grain patterns, placed on a clean linen cloth. The scene is shot from a high angle in a high-key bright studio setting. The atmosphere is serene and elegant, emphasizing the artisan quality of the woodwork with soft shadows and rich terracotta and cream tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjQavmaBrLTzZwe79E0Up6WpAKd12QrB_vObf6UQvgB4jnqZutnMOq6iNl-WbKrI3hTU5bABOzmyj6L0pRp87V2JtG6qLCMbBu1RDQruj3Ggrhrfek5BqQOU0Xp-rtqWGRD5xtsyWhQ4qLdgK5f8LJudJtf09nlzpHuYRanY8SxmNyyWKmwSweFaq1BWLTDPZwhCbzldNsJxBHEF5yVjzWsgW4lV_4lPiB2yNd6eW8MMOuB1zvNx3q-2PbFgkaGc-xDt_qHSOsbp5O"/>
+</div>
+<div class="flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-1">Khay Gỗ Xà Cừ Khảm Trai</h3>
+<p class="text-secondary font-medium text-sm mb-4">Làng Nghề Chuyên Mỹ</p>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant text-sm">Số lượng: 01</span>
+<span class="font-bold">850.000₫</span>
+</div>
+</div>
+</div>
+<div class="flex pt-6 border-t border-surface-container-high">
+<button class="w-full md:w-auto px-10 py-3 rounded-xl bg-surface-container-highest text-on-surface font-bold hover:bg-outline-variant transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xl">local_shipping</span>
+                        Theo dõi đơn hàng
+                    </button>
+</div>
+</div>
+<!-- Order Card 3: Waiting for payment -->
+<div class="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.06)] transition-all">
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<span class="text-sm font-bold tracking-widest text-on-surface-variant uppercase">#DH-11250</span>
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+<span class="text-sm font-medium text-on-surface-variant">Vừa xong</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold uppercase tracking-wider">Chờ thanh toán</span>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xs font-bold text-on-surface-variant block uppercase tracking-widest mb-1">Tổng cộng</span>
+<span class="text-2xl font-extrabold text-primary">1.200.000₫</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row gap-6 mb-8 items-start">
+<div class="relative w-full sm:w-32 aspect-[4/5] rounded-lg overflow-hidden flex-shrink-0 bg-surface-container">
+<img alt="Túi cói thủ công" class="w-full h-full object-cover" data-alt="A stylish, hand-woven seagrass tote bag with leather handles, hanging on a minimalist white wall. The sunlight creates dramatic, sharp shadows of the weave pattern. The overall visual style is editorial and sophisticated, utilizing a warm terracotta and beige color palette to highlight the natural textures of the Vietnamese craft." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_cyy6a94tmIiUR6aP20mUrU2VSsd9yBbPX6x3hUlpngdT9_NP5qMWtMsktllc2bNoNF_9VikmoD6OnSYeIImuz6ZZlrhTQEyBflxupexg3Ic79TUN2R194HiqoyqC9T9yB8_xzrATM25IKG22of-WeUe1mYQTwD3liFAThAsAMq37e-_crPPcMtlFL8jSKrccO28VeY9xedgzsn0k2J9DeHWE_B1RNKNGJpPqx_nuKEWxeknLd3gP1lEDQvP_8ud82kKxvRyZF-5a"/>
+</div>
+<div class="flex-grow">
+<h3 class="text-xl font-bold text-on-surface mb-1">Túi Cói Đan Tay Cao Cấp</h3>
+<p class="text-secondary font-medium text-sm mb-4">Làng Cói Kim Sơn</p>
+<div class="flex items-center justify-between">
+<span class="text-on-surface-variant text-sm">Số lượng: 01</span>
+<span class="font-bold">1.200.000₫</span>
+</div>
+</div>
+</div>
+<div class="flex flex-wrap gap-3 pt-6 border-t border-surface-container-high">
+<button class="flex-1 md:flex-none px-8 py-3 rounded-xl border border-outline-variant text-on-surface font-bold hover:bg-stone-100 transition-all">Hủy đơn hàng</button>
+<button class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-primary text-on-primary font-bold shadow-md hover:opacity-90 transition-all">Thanh toán ngay</button>
+</div>
+</div>
+<!-- Empty State (Hidden by default, shown for demonstration in spirit) -->
+<!-- Uncomment to view
+            <div class="flex flex-col items-center justify-center py-24 text-center">
+                <div class="w-32 h-32 mb-8 text-outline-variant">
+                    <span class="material-symbols-outlined text-[80px]" style="font-variation-settings: 'wght' 200;">inventory_2</span>
+                </div>
+                <h3 class="text-2xl font-bold text-on-surface mb-2">Chưa có đơn hàng nào</h3>
+                <p class="text-on-surface-variant max-w-sm mb-8">Bạn chưa có đơn hàng nào trong mục này. Hãy khám phá những tác phẩm độc bản từ các nghệ nhân của chúng tôi.</p>
+                <button class="px-10 py-4 rounded-xl bg-primary text-on-primary font-bold shadow-lg hover:translate-y-[-2px] transition-all">Khám phá ngay</button>
+            </div>
+            -->
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-stone-100 dark:bg-stone-900 rounded-t-[1.5rem] mt-12">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-12 py-16 max-w-[1440px] mx-auto font-manrope">
+<div class="space-y-4">
+<div class="text-xl font-bold text-stone-900 dark:text-stone-100">Làng Nghề</div>
+<p class="text-stone-500 dark:text-stone-400 text-sm leading-relaxed">
+                    © 2024 Làng Nghề. Honoring Vietnamese Craftsmanship. Mỗi sản phẩm là một câu chuyện về đôi bàn tay và tâm hồn nghệ nhân.
+                </p>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-3">
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Our Story</a>
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Artisan Directory</a>
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Sustainability</a>
+</div>
+<div class="space-y-3">
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Shipping &amp; Returns</a>
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Privacy Policy</a>
+<a class="block text-stone-500 dark:text-stone-400 hover:text-orange-700 transition-colors text-sm" href="#">Contact Us</a>
+</div>
+</div>
+<div class="flex flex-col items-end space-y-4">
+<div class="flex space-x-4">
+<span class="material-symbols-outlined text-stone-500 cursor-pointer hover:text-primary transition-colors">social_leaderboard</span>
+<span class="material-symbols-outlined text-stone-500 cursor-pointer hover:text-primary transition-colors">brand_awareness</span>
+<span class="material-symbols-outlined text-stone-500 cursor-pointer hover:text-primary transition-colors">mail</span>
+</div>
+<div class="text-xs text-stone-400 font-medium tracking-widest uppercase">Vietnam Crafted</div>
+</div>
+</div>
+</footer>
+</body></html>

@@ -13,6 +13,16 @@ type ProfileData = {
   phone?: string;
   reputationScore: number;
   createdAt: string;
+  roles?: { role: string; isActive: boolean }[];
+  artisanProfile?: {
+    fullName: string;
+    slug: string;
+    isVerified: boolean;
+  } | null;
+  reviewSummary?: {
+    total: number;
+    averageRating: number;
+  };
   _count?: {
     followers: number;
     following: number;
@@ -28,6 +38,25 @@ type ProfileData = {
   products?: any[];
 };
 
+type ReviewItem = {
+  id: string;
+  rating_quality: number;
+  rating_accuracy: number;
+  rating_shipping: number;
+  rating_communication: number;
+  rating_payment: number;
+  comment?: string | null;
+  createdAt: string;
+  reviewer?: {
+    profile?: {
+      display_name?: string | null;
+      avatar_url?: string | null;
+    } | null;
+  } | null;
+};
+
+type ActiveTab = 'gallery' | 'reviews';
+
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<ProfileData | null>(null);
@@ -35,6 +64,8 @@ export default function ProfilePage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('gallery');
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   
   const [editForm, setEditForm] = useState({
     display_name: '',
@@ -60,6 +91,13 @@ export default function ProfilePage() {
       if (res.ok) {
         const json = await res.json();
         setUser(json.data);
+        const reviewRes = await api.get(`/users/${json.data.id}/reviews`);
+        if (reviewRes.ok) {
+          const reviewJson = await reviewRes.json();
+          setReviews(reviewJson.data?.items ?? []);
+        } else {
+          setReviews([]);
+        }
         setEditForm({
           display_name: json.data.profile?.display_name || '',
           bio: json.data.profile?.bio || '',
@@ -74,6 +112,30 @@ export default function ProfilePage() {
       router.push('/auth?mode=login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShareProfile = async () => {
+    if (!user?.profile?.slug) {
+      showToast('Hãy cập nhật tên hiển thị để tạo đường dẫn hồ sơ công khai', 'error');
+      return;
+    }
+
+    const publicUrl = `${window.location.origin}/ho-so/${user.profile.slug}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: user.profile.display_name || 'Hồ sơ Làng Nghề',
+          url: publicUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(publicUrl);
+        showToast('Đã sao chép liên kết hồ sơ công khai', 'success');
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        showToast('Chưa thể chia sẻ hồ sơ lúc này', 'error');
+      }
     }
   };
 
@@ -139,6 +201,28 @@ export default function ProfilePage() {
     user?.profile?.avatar_url,
     'https://lh3.googleusercontent.com/aida-public/AB6AXuAQ5LVvXgxx-E-_57gSL5yTTHo_76HhRKKKX0zvbt3BVTPVJ1MjIAA9uFcNBjB-jgeuX4jDcr8IPeK6Cnu-_xv26QGMYOEP6BC0FLFYTRNLGxMe6gQqdh3sMjLdOooevoZNZR6A6i-z4EAapm6gP-9bb8sLyLsebdzA9jFH7Pmsya64g91i6l-Qj1dQ-9K925hZ6yMeqQKhdobUcUtJUpbaLz4Z_eheMnOsw-FxAVh1c5RbGBFFrxa9cH3LeKO3ap-ovGyJdQTW6rL5',
   );
+  const isArtisan = Boolean(
+    user?.roles?.some((role) => role.role === 'artisan' && role.isActive),
+  );
+  const reviewTotal = user?.reviewSummary?.total ?? reviews.length;
+  const averageRating = user?.reviewSummary?.averageRating ?? 0;
+  const reputationLabel = Number(user?.reputationScore ?? 0)
+    .toFixed(1)
+    .replace('.0', '');
+  const publicProfileHref = user?.profile?.slug
+    ? `/ho-so/${user.profile.slug}`
+    : null;
+  const getReviewAverage = (review: ReviewItem) =>
+    (
+      (review.rating_quality +
+        review.rating_accuracy +
+        review.rating_shipping +
+        review.rating_communication +
+        review.rating_payment) /
+      5
+    )
+      .toFixed(1)
+      .replace('.0', '');
 
   return (
     <main className="min-h-screen bg-[#f9f9f9] selection:bg-[#c84b31]/10">
@@ -184,7 +268,7 @@ export default function ProfilePage() {
             <div className="w-56 h-56 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl relative">
               <img className="w-full h-full object-cover" src={userAvatar} alt={user?.profile?.display_name} />
             </div>
-            {user?.products && user.products.length > 0 && (
+            {user?.artisanProfile?.isVerified && (
               <div className="absolute -bottom-2 -right-2 bg-[#52652a] p-3 rounded-2xl shadow-xl border-4 border-white">
                 <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
               </div>
@@ -208,6 +292,10 @@ export default function ProfilePage() {
                    </p>
                    <span className="text-zinc-300">•</span>
                    <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest">
+                     {isArtisan ? 'Nghệ nhân' : 'Người yêu thủ công'}
+                   </p>
+                   <span className="text-zinc-300">•</span>
+                   <p className="text-zinc-500 font-bold text-xs uppercase tracking-widest">
                      Tham gia: {new Date(user?.createdAt || '').toLocaleDateString('vi-VN')}
                    </p>
                 </div>
@@ -219,7 +307,16 @@ export default function ProfilePage() {
                 >
                   Chỉnh sửa hồ sơ
                 </button>
-                <button className="p-4 bg-white text-zinc-800 rounded-2xl shadow-lg border border-black/5 hover:bg-zinc-50 transition-colors">
+                {publicProfileHref && (
+                  <button
+                    onClick={() => router.push(publicProfileHref)}
+                    className="hidden sm:flex items-center gap-2 px-5 py-4 bg-white text-zinc-800 rounded-2xl shadow-lg border border-black/5 hover:bg-zinc-50 transition-colors font-black uppercase tracking-[0.12em] text-xs"
+                  >
+                    <span className="material-symbols-outlined">visibility</span>
+                    Xem công khai
+                  </button>
+                )}
+                <button onClick={handleShareProfile} className="p-4 bg-white text-zinc-800 rounded-2xl shadow-lg border border-black/5 hover:bg-zinc-50 transition-colors">
                   <span className="material-symbols-outlined">share</span>
                 </button>
               </div>
@@ -252,8 +349,12 @@ export default function ProfilePage() {
           >
             <div className="grid grid-cols-2 gap-y-10">
               <div className="space-y-1">
-                <span className="block text-4xl font-black text-[#c84b31]">{user?.reputationScore || 0}</span>
+                <span className="block text-4xl font-black text-[#c84b31]">{reputationLabel}</span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#c84b31]/50">Uy tín</span>
+              </div>
+              <div className="space-y-1">
+                <span className="block text-4xl font-black text-[#c84b31]">{reviewTotal}</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#c84b31]/50">Đánh giá</span>
               </div>
               <div className="space-y-1">
                 <span className="block text-4xl font-black text-[#c84b31]">{user?._count?.products || 0}</span>
@@ -269,28 +370,41 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="mt-10 pt-8 border-t border-[#c84b31]/10">
-               <p className="text-[11px] font-bold text-[#c84b31]/60 italic italic -tracking-wide">
-                 "Mỗi tác phẩm là một nhịp thở của thời gian."
+               <p className="text-[11px] font-bold text-[#c84b31]/60 italic -tracking-wide">
+                 {reviewTotal > 0
+                   ? `Điểm đánh giá trung bình ${averageRating.toFixed(1).replace('.0', '')}/5 từ giao dịch thật.`
+                   : 'Hồ sơ sẽ có điểm uy tín khi phát sinh đánh giá sau đơn hàng.'}
                </p>
             </div>
           </motion.div>
         </div>
 
-        {/* Tabbed Content Area - Only show if user has products */}
-        {user?.products && user.products.length > 0 ? (
-          <div className="mt-24 pb-24">
-            <div className="flex gap-12 border-b border-zinc-100 px-2 mb-12">
-              <button className="pb-6 border-b-4 border-[#c84b31] text-[#1a1c1c] font-black uppercase tracking-[0.2em] text-xs">
+        <div className="mt-24 pb-24">
+          <div className="flex gap-12 border-b border-zinc-100 px-2 mb-12 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('gallery')}
+              className={`pb-6 font-black uppercase tracking-[0.2em] text-xs transition-colors ${
+                activeTab === 'gallery'
+                  ? 'border-b-4 border-[#c84b31] text-[#1a1c1c]'
+                  : 'text-zinc-400 hover:text-[#c84b31]'
+              }`}
+            >
                 Phòng trưng bày
-              </button>
-              <button className="pb-6 text-zinc-400 font-black uppercase tracking-[0.2em] text-xs hover:text-[#c84b31] transition-colors">
-                Bộ sưu tập
-              </button>
-              <button className="pb-6 text-zinc-400 font-black uppercase tracking-[0.2em] text-xs hover:text-[#c84b31] transition-colors">
-                Đánh giá chung
-              </button>
-            </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`pb-6 font-black uppercase tracking-[0.2em] text-xs transition-colors ${
+                activeTab === 'reviews'
+                  ? 'border-b-4 border-[#c84b31] text-[#1a1c1c]'
+                  : 'text-zinc-400 hover:text-[#c84b31]'
+              }`}
+            >
+              Đánh giá chung
+            </button>
+          </div>
 
+          {activeTab === 'gallery' && (
+            user?.products && user.products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {user.products.map((p: any) => (
                 <ProductCard 
@@ -302,18 +416,68 @@ export default function ProfilePage() {
                   artisanName={user?.profile?.display_name}
                   categoryName={p.category?.name}
                   slug={p.slug}
+                  averageRating={averageRating}
+                  reviewCount={reviewTotal}
+                  followerCount={user?._count?.followers}
                 />
               ))}
             </div>
+            ) : (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#c84b31]/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <span className="material-symbols-outlined text-[#c84b31]/40 text-3xl">box_edit</span>
+                </div>
+                <p className="text-zinc-400 font-bold text-sm tracking-widest uppercase">Chưa có tác phẩm trưng bày</p>
+                <button
+                  onClick={() => router.push(isArtisan ? '/nghe-nhan/san-pham/them' : '/nghe-nhan/dang-ky')}
+                  className="mt-6 rounded-2xl bg-[#1a1c1c] px-8 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-black/10 transition-colors hover:bg-[#c84b31]"
+                >
+                  {isArtisan ? 'Đăng tác phẩm đầu tiên' : 'Trở thành nghệ nhân'}
+                </button>
+              </div>
+            )
+          )}
+
+          {activeTab === 'reviews' && (
+            reviews.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {reviews.map((review) => (
+                  <article key={review.id} className="rounded-[2rem] border border-black/[0.03] bg-white p-8 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-lg font-black text-[#1a1c1c]">
+                          ★ {getReviewAverage(review)}/5
+                        </p>
+                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
+                          {new Date(review.createdAt).toLocaleDateString('vi-VN')}
+                        </p>
+                      </div>
+                      <p className="text-right text-xs font-bold text-[#52652a]">
+                        {review.reviewer?.profile?.display_name || 'Người mua đã xác thực'}
+                      </p>
+                    </div>
+                    <p className="mt-6 text-base font-medium leading-8 text-zinc-600">
+                      {review.comment || 'Người đánh giá chưa để lại bình luận.'}
+                    </p>
+                    <div className="mt-6 grid grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-widest text-zinc-400 sm:grid-cols-5">
+                      <span>Chất lượng {review.rating_quality}</span>
+                      <span>Mô tả {review.rating_accuracy}</span>
+                      <span>Giao hàng {review.rating_shipping}</span>
+                      <span>Trao đổi {review.rating_communication}</span>
+                      <span>Thanh toán {review.rating_payment}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[2rem] border border-dashed border-[#c84b31]/20 bg-white p-12 text-center">
+                <p className="text-sm font-bold text-zinc-500">
+                  Chưa có đánh giá sau giao dịch. Khi đơn hàng hoàn tất và hai bên đánh giá nhau, điểm uy tín sẽ xuất hiện tại đây.
+                </p>
+              </div>
+            )
+          )}
           </div>
-        ) : (
-          <div className="mt-24 pb-24 text-center">
-             <div className="w-16 h-16 bg-[#c84b31]/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="material-symbols-outlined text-[#c84b31]/40 text-3xl">box_edit</span>
-             </div>
-             <p className="text-zinc-400 font-bold text-sm tracking-widest uppercase">Chưa có tác phẩm trưng bày</p>
-          </div>
-        )}
       </section>
 
       {/* Edit Profile Modal */}
