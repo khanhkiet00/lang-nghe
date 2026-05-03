@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { resolveImageUrl } from '@/lib/images';
+import { Navbar } from '@/components/ui/Navbar';
 import {
   CART_CHANGED_EVENT,
   getCartItems,
@@ -140,18 +141,7 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-20 text-[#1A1C1C]">
-      <nav className="fixed left-0 top-0 z-50 w-full bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-4">
-          <Link href="/" className="text-2xl font-extrabold tracking-tighter text-[#C84B31]">
-            Làng Nghề
-          </Link>
-          <div className="hidden items-center gap-8 md:flex">
-            <Link className="text-stone-600 transition-colors hover:text-[#C84B31]" href="/">Khám phá</Link>
-            <Link className="text-stone-600 transition-colors hover:text-[#C84B31]" href="/ho-so">Hồ sơ</Link>
-            <span className="border-b-2 border-[#C84B31] pb-1 font-bold text-[#C84B31]">Giỏ hàng</span>
-          </div>
-        </div>
-      </nav>
+      <Navbar showSearch={false} activePage="none" />
 
       <div className="mx-auto max-w-7xl px-6 pt-28 md:px-8">
         <header className="mb-12">

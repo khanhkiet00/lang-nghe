@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import Pagination from '@/components/ui/Pagination';
 import OrderDetailDrawer from '@/components/OrderDetailDrawer';
 import { resolveImageUrl } from '@/lib/images';
+import BuyerReviewModal from '@/components/ui/BuyerReviewModal';
 
 const productFallbackImage =
   'https://images.unsplash.com/photo-1621376436442-999335805822?q=80&w=400&auto=format&fit=crop';
@@ -18,21 +20,32 @@ interface OrderItem {
 
 interface Order {
   id: string;
-  buyer: { profile: { display_name: string; village: string } };
+  artisanId: string;
+  buyerId: string;
+  buyer: { id: string; profile: { display_name: string; avatar_url?: string } };
   status: string;
   subtotal: number;
+  shippingFee: number;
+  platformFee: number;
+  artisanAmount: number;
   createdAt: string;
   shippingAddress: any;
   orderItems: OrderItem[];
   trackingCode?: string;
   noteFromBuyer?: string;
+  reviews?: Array<{
+    id: string;
+    reviewer_id: string;
+    reviewee_id: string;
+    order_id: string;
+  }>;
 }
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
-  const [activeTab, setActiveTab] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('PENDING');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -41,6 +54,12 @@ export default function OrderManagementPage() {
   // Drawer state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [buyerReviewModal, setBuyerReviewModal] = useState<{
+    isOpen: boolean;
+    orderId: string;
+    buyerId: string;
+    buyerName: string;
+  }>({ isOpen: false, orderId: '', buyerId: '', buyerName: '' });
 
   const fetchOrders = useCallback(async (page: number, status: string, search: string, isInitial = false) => {
     if (isInitial) setLoading(true);
@@ -53,14 +72,11 @@ export default function OrderManagementPage() {
       });
       if (status !== 'ALL') query.append('status', status.toLowerCase());
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/artisan?${query.toString()}`, {
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        }
-      });
+      const res = await api.get(`/orders/artisan?${query.toString()}`);
       const json = await res.json();
-      setOrders(json.data?.items || json.data || []);
-      setTotalOrders(json.data?.pagination?.total || 0);
+      const items = json.data?.items || json.data || [];
+      setOrders(items);
+      setTotalOrders(json.data?.pagination?.total || items.length);
       setTotalPages(json.data?.pagination?.totalPages || 1);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
@@ -72,14 +88,7 @@ export default function OrderManagementPage() {
 
   const handleUpdateStatus = async (orderId: string, status: string, data: any = {}) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: JSON.stringify({ status, ...data }),
-      });
+      const res = await api.patch(`/orders/${orderId}/status`, { status, ...data });
 
       if (res.ok) {
         toast.success('Cập nhật trạng thái thành công');
@@ -98,9 +107,16 @@ export default function OrderManagementPage() {
     setIsDrawerOpen(true);
   };
 
+  const hasReviewedBuyer = (order: Order) =>
+    order.reviews?.some(
+      (review) =>
+        review.reviewer_id === order.artisanId &&
+        review.reviewee_id === order.buyerId,
+    );
+
   // Initial load
   useEffect(() => {
-    fetchOrders(1, 'ALL', '', true);
+    fetchOrders(1, 'PENDING', '', true);
   }, [fetchOrders]);
 
   // Handle Tab change
@@ -109,16 +125,14 @@ export default function OrderManagementPage() {
       setCurrentPage(1);
       fetchOrders(1, activeTab, searchTerm, false);
     }
-  }, [activeTab]); // Trigger specifically on tab change
+  }, [activeTab]);
 
   // Handle Search Debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!loading && searchTerm !== '') {
+      if (!loading) {
         setCurrentPage(1);
         fetchOrders(1, activeTab, searchTerm, false);
-      } else if (searchTerm === '' && !loading) {
-        fetchOrders(1, activeTab, '', false);
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -133,11 +147,11 @@ export default function OrderManagementPage() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return 'bg-[#fff7ed] text-[#c2410c] border-[#ffedd5]'; // Orange/Warm for new
-      case 'processing': return 'bg-[#eff6ff] text-[#1d4ed8] border-[#dbeafe]'; // Blue for in-progress
-      case 'shipped': return 'bg-[#f5f3ff] text-[#6d28d9] border-[#ede9fe]'; // Purple for shipping
-      case 'completed': return 'bg-[#f0fdf4] text-[#15803d] border-[#dcfce7]'; // Green for success
-      case 'cancelled': return 'bg-[#fef2f2] text-[#b91c1c] border-[#fee2e2]'; // Red for cancelled
+      case 'pending': return 'bg-[#fff7ed] text-[#c2410c] border-[#ffedd5]';
+      case 'processing': return 'bg-[#eff6ff] text-[#1d4ed8] border-[#dbeafe]';
+      case 'shipped': return 'bg-[#f5f3ff] text-[#6d28d9] border-[#ede9fe]';
+      case 'completed': return 'bg-[#f0fdf4] text-[#15803d] border-[#dcfce7]';
+      case 'cancelled': return 'bg-[#fef2f2] text-[#b91c1c] border-[#fee2e2]';
       default: return 'bg-gray-50 text-gray-700';
     }
   };
@@ -152,8 +166,6 @@ export default function OrderManagementPage() {
       default: return status;
     }
   };
-
-  // Lọc tab giờ đây được xử lý ở server-side thông qua fetchOrders
 
   return (
     <main className="flex flex-col min-h-screen">
@@ -188,7 +200,7 @@ export default function OrderManagementPage() {
 
       <div className="px-10 mb-8 overflow-x-auto">
         <div className="flex gap-8 border-b border-outline-variant/20">
-          {['ALL', 'PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED'].map((tab) => (
+          {['ALL', 'PENDING', 'PROCESSING', 'SHIPPED', 'COMPLETED', 'CANCELLED'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -223,7 +235,7 @@ export default function OrderManagementPage() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <div className="px-3 py-1 bg-[#c84b31]/10 text-[#c84b31] rounded-full font-bold text-[10px] tracking-widest uppercase">
-                  #{order.id.slice(-6).toUpperCase()}
+                  #{order.id.split('-')[0].toUpperCase()}
                 </div>
                 <span className="text-on-surface-variant text-sm font-medium">
                   {new Date(order.createdAt).toLocaleDateString('vi-VN', {
@@ -249,7 +261,6 @@ export default function OrderManagementPage() {
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-[#8c716b] mb-1 font-bold">Khách hàng</p>
                   <p className="font-bold text-on-surface">{order.buyer?.profile?.display_name || 'Khách ẩn danh'}</p>
-                  <p className="text-sm text-on-surface-variant">{order.buyer?.profile?.village || 'Toàn quốc'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-[#8c716b] mb-1 font-bold">Sản phẩm</p>
@@ -260,7 +271,7 @@ export default function OrderManagementPage() {
                 </div>
                 <div className="md:text-right">
                   <p className="text-[10px] uppercase tracking-widest text-[#8c716b] mb-1 font-bold">Tổng cộng</p>
-                  <p className="font-bold text-xl text-[#c84b31]">{order.subtotal.toLocaleString('vi-VN')}₫</p>
+                  <p className="font-bold text-xl text-[#c84b31]">{(order.subtotal + (order.shippingFee || 0)).toLocaleString('vi-VN')}₫</p>
                 </div>
               </div>
             </div>
@@ -282,11 +293,33 @@ export default function OrderManagementPage() {
               )}
               {order.status.toLowerCase() === 'processing' && (
                 <button 
-                  onClick={() => openDetail(order)} // Giục nghệ nhân vào Drawer để nhập mã vận đơn
+                  onClick={() => openDetail(order)}
                   className="px-6 py-2 bg-blue-600 text-white font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity"
                 >
                   Giao hàng
                 </button>
+              )}
+              {order.status.toLowerCase() === 'completed' && (
+                hasReviewedBuyer(order) ? (
+                  <div className="flex items-center gap-2 rounded-lg bg-[#52652a]/10 px-4 py-2 text-sm font-bold text-[#52652a]">
+                    <span className="material-symbols-outlined text-lg">check_circle</span>
+                    Đã đánh giá người mua
+                  </div>
+                ) : (
+                  <button
+                    onClick={() =>
+                      setBuyerReviewModal({
+                        isOpen: true,
+                        orderId: order.id,
+                        buyerId: order.buyerId,
+                        buyerName: order.buyer?.profile?.display_name || 'Khách ẩn danh',
+                      })
+                    }
+                    className="px-6 py-2 bg-[#52652a] text-white font-bold text-sm rounded-lg shadow-sm hover:opacity-90 transition-opacity"
+                  >
+                    Đánh giá người mua
+                  </button>
+                )
               )}
             </div>
           </div>
@@ -294,11 +327,6 @@ export default function OrderManagementPage() {
       </div>
 
       <div className="px-10 pb-10">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-[10px] text-on-surface-variant/50 font-bold uppercase tracking-widest">
-            Hiển thị {orders.length} / {totalOrders} đơn hàng
-          </p>
-        </div>
         <Pagination 
           currentPage={currentPage}
           totalPages={totalPages}
@@ -311,6 +339,18 @@ export default function OrderManagementPage() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         onUpdateStatus={handleUpdateStatus}
+      />
+
+      <BuyerReviewModal
+        isOpen={buyerReviewModal.isOpen}
+        orderId={buyerReviewModal.orderId}
+        buyerId={buyerReviewModal.buyerId}
+        buyerName={buyerReviewModal.buyerName}
+        onClose={() => setBuyerReviewModal((prev) => ({ ...prev, isOpen: false }))}
+        onSuccess={(message) => {
+          toast.success(message || 'Đã gửi đánh giá người mua');
+          fetchOrders(currentPage, activeTab, searchTerm, false);
+        }}
       />
     </main>
   );

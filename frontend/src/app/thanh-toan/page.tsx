@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { Navbar } from '@/components/ui/Navbar';
 import {
   CART_CHANGED_EVENT,
   getCartItems,
@@ -97,7 +98,7 @@ export default function CheckoutPage() {
   const [locationError, setLocationError] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('langnghe_access_token');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('langnghe_access_token') : null;
     if (!token) {
       router.push('/auth?mode=login');
       return;
@@ -372,8 +373,8 @@ export default function CheckoutPage() {
             <Link href="/" className="rounded-2xl bg-[#1A1C1C] px-6 py-3 text-sm font-bold text-white">
               Tiếp tục mua sắm
             </Link>
-            <Link href="/ho-so" className="rounded-2xl bg-[#C84B31] px-6 py-3 text-sm font-bold text-white">
-              Xem hồ sơ
+            <Link href="/don-hang" className="rounded-2xl bg-[#C84B31] px-6 py-3 text-sm font-bold text-white">
+              Xem đơn hàng
             </Link>
           </div>
         </section>
@@ -383,17 +384,7 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-20 text-[#1A1C1C]">
-      <header className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl">
-        <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-4">
-          <Link href="/" className="text-2xl font-extrabold tracking-tighter text-[#C84B31]">
-            Làng Nghề
-          </Link>
-          <span className="hidden items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-[#58413C] md:flex">
-            <span className="material-symbols-outlined text-sm">lock</span>
-            Thanh toán an toàn
-          </span>
-        </nav>
-      </header>
+      <Navbar showSearch={false} activePage="none" />
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 pt-28 md:px-8 lg:grid-cols-12">
         <div className="space-y-12 lg:col-span-7">

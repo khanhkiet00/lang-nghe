@@ -8,7 +8,7 @@ export class AnalyticsService {
   async getAnalytics(
     userId: string,
     type: 'buyer' | 'artisan',
-    timeFilter: 'month' | 'quarter' | 'year',
+    timeFilter: 'day' | 'month' | 'quarter' | 'year',
     start?: string,
     end?: string,
   ) {
@@ -51,7 +51,9 @@ export class AnalyticsService {
     orders.forEach((order) => {
       const date = new Date(order.createdAt);
       let timeKey = '';
-      if (timeFilter === 'month') {
+      if (timeFilter === 'day') {
+        timeKey = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      } else if (timeFilter === 'month') {
         timeKey = `T${date.getMonth() + 1}/${date.getFullYear()}`;
       } else if (timeFilter === 'quarter') {
         timeKey = `Q${Math.floor(date.getMonth() / 3) + 1}/${date.getFullYear()}`;

@@ -116,6 +116,56 @@ export class UsersService {
     });
   }
 
+  private async getTopRatedProducts(artisanId: string, limit: number = 4) {
+    const topProducts = await this.prisma.$queryRaw<{ id: string, avg_rating: number }[]>`
+      SELECT p.id, 
+             AVG((r.rating_quality + r.rating_accuracy + r.rating_shipping + r.rating_communication + r.rating_payment) / 5.0) as avg_rating
+      FROM "Product" p
+      JOIN "OrderItem" oi ON p.id = oi."productId"
+      JOIN "Order" o ON oi."orderId" = o.id
+      JOIN "Review" r ON o.id = r."order_id"
+      WHERE p."artisanId" = ${artisanId} AND p."isDeleted" = false AND p."isActive" = true
+      GROUP BY p.id
+      ORDER BY avg_rating DESC
+      LIMIT ${limit}
+    `;
+
+    const ids = topProducts.map(p => p.id);
+
+    let products = await this.prisma.product.findMany({
+      where: {
+        id: { in: ids },
+        isDeleted: false,
+      },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        images: { select: { id: true, url: true } },
+      },
+    });
+
+    products.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+
+    if (products.length < limit) {
+      const moreProducts = await this.prisma.product.findMany({
+        where: {
+          artisanId,
+          isDeleted: false,
+          isActive: true,
+          id: { notIn: ids },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit - products.length,
+        include: {
+          category: { select: { id: true, name: true, slug: true } },
+          images: { select: { id: true, url: true } },
+        },
+      });
+      products = [...products, ...moreProducts];
+    }
+
+    return products;
+  }
+
   async getMeDetails(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -140,25 +190,6 @@ export class UsersService {
             following: true,
           },
         },
-        products: {
-          where: { isActive: true, isDeleted: false },
-          orderBy: { createdAt: 'desc' },
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-            images: {
-              select: {
-                id: true,
-                url: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -166,13 +197,15 @@ export class UsersService {
       throw new NotFoundException('Khong tim thay nguoi dung');
     }
 
+    const topProducts = await this.getTopRatedProducts(userId, 4);
+
     const productCount = await this.prisma.product.count({
       where: { artisanId: userId, isActive: true, isDeleted: false },
     });
 
-    // Đảm bảo trả về đúng định dạng object _count mà frontend mong đợi
     return {
       ...user,
+      products: topProducts,
       reviewSummary: await this.getReviewSummary(userId),
       _count: {
         followers: user._count.followers,
@@ -323,14 +356,6 @@ export class UsersService {
                 },
               },
             },
-            products: {
-              where: { isActive: true, isDeleted: false },
-              orderBy: { createdAt: 'desc' },
-              include: {
-                category: { select: { id: true, name: true, slug: true } },
-                images: { select: { id: true, url: true } },
-              },
-            },
           },
         },
       },
@@ -340,10 +365,13 @@ export class UsersService {
       throw new NotFoundException('Khong tim thay ho so cong khai');
     }
 
+    const topProducts = await this.getTopRatedProducts(profile.user.id, 4);
+
     return {
       ...profile,
       user: {
         ...profile.user,
+        products: topProducts,
         reviewSummary: await this.getReviewSummary(profile.user.id),
       },
     };

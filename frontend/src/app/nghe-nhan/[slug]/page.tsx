@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/images';
+import { Navbar } from '@/components/ui/Navbar';
 
 type Product = {
   id: string;
@@ -102,7 +103,9 @@ export default async function ArtisanProfilePage({
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] text-[#1A1C1C]">
-      <section className="relative overflow-hidden bg-[#1A1C1C] text-white">
+      <Navbar showSearch={false} activePage="none" />
+
+      <section className="relative overflow-hidden bg-[#1A1C1C] text-white pt-24">
         <div className="absolute inset-0 opacity-30">
           <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#1A1C1C] via-[#1A1C1C]/80 to-[#1A1C1C]/30" />
@@ -110,9 +113,6 @@ export default async function ArtisanProfilePage({
 
         <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-12 md:px-10 md:py-20">
           <div className="md:col-span-8">
-            <Link href="/" className="text-xs font-black uppercase tracking-[0.2em] text-white/60 hover:text-white">
-              Làng Nghề
-            </Link>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <h1 className="text-5xl font-black tracking-tight md:text-7xl">
                 {profile.fullName}

@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/images';
 import { AddToCartPanel } from '@/components/AddToCartPanel';
 import { ProductCard } from '@/components/ProductCard';
+import { Navbar } from '@/components/ui/Navbar';
+import { ReviewList } from '@/components/ReviewList';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -59,11 +61,8 @@ type ReviewResponse = {
       id: string;
       comment?: string | null;
       createdAt: string;
-      rating_quality: number;
-      rating_accuracy: number;
-      rating_shipping: number;
-      rating_communication: number;
-      rating_payment: number;
+      rating: number;
+      images?: string[] | null;
       reviewer?: {
         profile?: {
           display_name?: string | null;
@@ -103,9 +102,9 @@ async function getProducts(): Promise<ProductDetail[]> {
   }
 }
 
-async function getReviews(userId: string) {
+async function getReviews(productId: string) {
   try {
-    const res = await fetch(`${API_BASE}/users/${userId}/reviews`, {
+    const res = await fetch(`${API_BASE}/products/${productId}/reviews`, {
       next: { revalidate: 120 },
     });
     if (!res.ok) return [];
@@ -118,25 +117,6 @@ async function getReviews(userId: string) {
 
 function formatVnd(value: number) {
   return new Intl.NumberFormat('vi-VN').format(value) + 'đ';
-}
-
-function getReviewAverage(review: {
-  rating_quality: number;
-  rating_accuracy: number;
-  rating_shipping: number;
-  rating_communication: number;
-  rating_payment: number;
-}) {
-  return (
-    (review.rating_quality +
-      review.rating_accuracy +
-      review.rating_shipping +
-      review.rating_communication +
-      review.rating_payment) /
-    5
-  )
-    .toFixed(1)
-    .replace('.0', '');
 }
 
 export async function generateMetadata({
@@ -172,7 +152,7 @@ export default async function ProductDetailPage({
   }
 
   const [reviews, products] = await Promise.all([
-    product.artisan?.id ? getReviews(product.artisan.id) : Promise.resolve([]),
+    getReviews(product.id),
     getProducts(),
   ]);
   const recommendations = products
@@ -213,19 +193,7 @@ export default async function ProductDetailPage({
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] pb-20 text-[#1A1C1C]">
-      <nav className="fixed top-0 z-50 w-full bg-white/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-4">
-          <Link href="/" className="shrink-0 text-2xl font-extrabold tracking-tighter text-[#C84B31]">
-            Làng Nghề
-          </Link>
-          <div className="flex items-center gap-5 text-sm font-bold text-stone-500">
-            <Link href="/" className="transition-colors hover:text-[#C84B31]">Khám phá</Link>
-            <Link href="/gio-hang" className="rounded-full bg-[#F9F9F7] px-4 py-2 text-[#C84B31] shadow-sm transition-colors hover:bg-[#C84B31] hover:text-white">
-              Giỏ hàng
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar showSearch={false} activePage="none" />
 
       <div className="mx-auto max-w-[1440px] px-6 pt-28 md:px-8">
 
@@ -389,36 +357,12 @@ export default async function ProductDetailPage({
             </div>
           </div>
 
-          <div className="space-y-12">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <h2 className="text-4xl font-extrabold tracking-tighter">Đánh giá từ cộng đồng</h2>
-              <span className="font-bold text-[#A6331B]">{reviewCount} đánh giá</span>
-            </div>
-            {reviews.length > 0 ? (
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {reviews.slice(0, 2).map((review) => (
-                  <article key={review.id} className="space-y-6 rounded-2xl bg-white p-10 shadow-[0_20px_40px_-12px_rgba(26,28,28,0.08)]">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-bold">{review.reviewer?.profile?.display_name || 'Người mua đã xác thực'}</p>
-                        <p className="text-xs font-bold uppercase tracking-widest text-[#58413C]">
-                          {new Date(review.createdAt).toLocaleDateString('vi-VN')}
-                        </p>
-                      </div>
-                      <div className="font-black text-yellow-500">★ {getReviewAverage(review)}</div>
-                    </div>
-                    <p className="italic leading-relaxed text-[#58413C]">
-                      {review.comment || 'Người đánh giá chưa để lại bình luận.'}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl bg-white p-10 text-center text-sm font-bold text-[#58413C]">
-                Sản phẩm/nghệ nhân này chưa có đánh giá sau giao dịch.
-              </div>
-            )}
-          </div>
+          <ReviewList
+            reviews={reviews}
+            reviewCount={reviewCount}
+            title="Đánh giá sản phẩm"
+            emptyMessage="Sản phẩm này chưa có đánh giá sau giao dịch."
+          />
         </section>
 
         {recommendations.length > 0 && (

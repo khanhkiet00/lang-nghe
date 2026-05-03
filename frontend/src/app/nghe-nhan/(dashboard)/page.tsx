@@ -1,15 +1,53 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { api } from '@/lib/api';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 const COLORS = ['#C84B31', '#D4ECA2', '#4A5D23', '#F2AE30', '#3B82F6', '#8B5CF6'];
 
-type FilterType = 'month' | 'quarter' | 'year';
+type FilterType = 'day' | 'month' | 'quarter' | 'year';
+type DatePreset = '7d' | '30d' | 'month' | 'year' | 'custom';
+
+function toDateInputValue(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function getPresetRange(preset: DatePreset) {
+  const now = new Date();
+  const end = new Date(now);
+  let start = new Date(now);
+
+  if (preset === '7d') {
+    start.setDate(now.getDate() - 6);
+  } else if (preset === '30d') {
+    start.setDate(now.getDate() - 29);
+  } else if (preset === 'month') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (preset === 'year') {
+    start = new Date(now.getFullYear(), 0, 1);
+  }
+
+  return {
+    startDate: toDateInputValue(start),
+    endDate: toDateInputValue(end),
+  };
+}
+
+function toStartOfDayIso(dateString: string) {
+  const date = new Date(dateString);
+  date.setHours(0, 0, 0, 0);
+  return date.toISOString();
+}
+
+function toEndOfDayIso(dateString: string) {
+  const date = new Date(dateString);
+  date.setHours(23, 59, 59, 999);
+  return date.toISOString();
+}
 
 export default function ArtisanDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -17,24 +55,22 @@ export default function ArtisanDashboardPage() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   
   // States for Analytics Filters
-  const [timeFilter, setTimeFilter] = useState<FilterType>('month');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [timeFilter, setTimeFilter] = useState<FilterType>('day');
+  const [datePreset, setDatePreset] = useState<DatePreset>('30d');
+  const initialRange = getPresetRange('30d');
+  const [startDate, setStartDate] = useState(initialRange.startDate);
+  const [endDate, setEndDate] = useState(initialRange.endDate);
   const [selectedArtisanCategory, setSelectedArtisanCategory] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchAnalytics() {
       setLoadingAnalytics(true);
-      const token = localStorage.getItem('langnghe_access_token');
-      
       try {
         const queryParams = new URLSearchParams({ timeFilter });
-        if (startDate) queryParams.append('startDate', new Date(startDate).toISOString());
-        if (endDate) queryParams.append('endDate', new Date(endDate).toISOString());
+        if (startDate) queryParams.append('startDate', toStartOfDayIso(startDate));
+        if (endDate) queryParams.append('endDate', toEndOfDayIso(endDate));
 
-        const res = await fetch(`${API_BASE}/analytics/artisan?${queryParams}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/analytics/artisan?${queryParams}`);
 
         if (res.ok) {
           const data = await res.json();
@@ -50,6 +86,17 @@ export default function ArtisanDashboardPage() {
 
     void fetchAnalytics();
   }, [timeFilter, startDate, endDate]);
+
+  const handlePresetChange = (preset: DatePreset) => {
+    setDatePreset(preset);
+    if (preset !== 'custom') {
+      const range = getPresetRange(preset);
+      setStartDate(range.startDate);
+      setEndDate(range.endDate);
+      if (preset === 'year') setTimeFilter('month');
+      else setTimeFilter('day');
+    }
+  };
 
   const processedChartData = useMemo(() => {
     if (!analyticsData?.chartData) return [];
@@ -89,34 +136,61 @@ export default function ArtisanDashboardPage() {
         </div>
         
         <div className="flex flex-col md:flex-row items-end gap-3 md:items-center">
-          {/* Date Range Filters */}
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-black/5 shadow-sm">
+          <div className="flex bg-white rounded-xl p-1 shadow-sm border border-black/5 overflow-x-auto max-w-full">
+            {[
+              ['7d', '7 ngày'],
+              ['30d', '30 ngày'],
+              ['month', 'Tháng này'],
+              ['year', 'Năm nay'],
+              ['custom', 'Tùy chỉnh'],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                onClick={() => handlePresetChange(value as DatePreset)}
+                className={`px-4 py-2 rounded-lg text-[11px] font-bold transition-all uppercase tracking-widest whitespace-nowrap ${
+                  datePreset === value
+                    ? 'bg-[#1A1C1C] text-white shadow-md'
+                    : 'text-[#58413C] hover:bg-zinc-50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className={`flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-black/5 shadow-sm ${datePreset !== 'custom' ? 'opacity-60' : ''}`}>
             <span className="text-[10px] font-bold uppercase text-zinc-400">Từ</span>
             <input 
               type="date" 
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => {
+                setDatePreset('custom');
+                setStartDate(e.target.value);
+              }}
               className="text-xs outline-none text-[#58413C] bg-transparent font-bold"
             />
             <span className="text-[10px] font-bold uppercase text-zinc-400 ml-1">Đến</span>
             <input 
               type="date" 
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => {
+                setDatePreset('custom');
+                setEndDate(e.target.value);
+              }}
               className="text-xs outline-none text-[#58413C] bg-transparent font-bold"
             />
             {(startDate || endDate) && (
               <button
-                 onClick={() => { setStartDate(''); setEndDate(''); }}
+                 onClick={() => handlePresetChange('30d')}
                  className="text-[10px] text-red-500 hover:text-red-700 ml-2 font-black uppercase tracking-tighter"
               >
-                Xóa
+                Reset
               </button>
             )}
           </div>
 
           <div className="flex bg-white rounded-xl p-1 shadow-sm border border-black/5">
-            {['month', 'quarter', 'year'].map((f) => (
+            {['day', 'month', 'quarter', 'year'].map((f) => (
               <button
                 key={f}
                 onClick={() => setTimeFilter(f as FilterType)}
@@ -126,7 +200,7 @@ export default function ArtisanDashboardPage() {
                   : 'text-[#58413C] hover:bg-zinc-50'
                 }`}
               >
-                {f === 'month' ? 'Tháng' : f === 'quarter' ? 'Quý' : 'Năm'}
+                {f === 'day' ? 'Ngày' : f === 'month' ? 'Tháng' : f === 'quarter' ? 'Quý' : 'Năm'}
               </button>
             ))}
           </div>

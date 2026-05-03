@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Navbar } from '@/components/ui/Navbar';
+import { api } from '@/lib/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -31,7 +32,7 @@ export default function RegisterArtisanPage() {
   const [faceMatched, setFaceMatched] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('langnghe_access_token');
+    const token = typeof window !== 'undefined' ? localStorage.getItem('langnghe_access_token') : null;
     if (!token) {
       router.push('/auth');
     } else {
@@ -54,6 +55,9 @@ export default function RegisterArtisanPage() {
       const data = await res.json();
       if (data.accessToken) {
         localStorage.setItem('langnghe_access_token', data.accessToken);
+        if (data.refreshToken) {
+          localStorage.setItem('langnghe_refresh_token', data.refreshToken);
+        }
         return true;
       }
       return false;
@@ -70,7 +74,7 @@ export default function RegisterArtisanPage() {
     else {
       setUploadingCccd(true);
       setFileCccd(file);
-      setFaceMatched(null); // Reset face match when CCCD changes
+      setFaceMatched(null);
     }
 
     try {
@@ -78,19 +82,12 @@ export default function RegisterArtisanPage() {
       formDataUpload.append('files', file);
       formDataUpload.append('folderType', field === 'avatarUrl' ? 'artisans' : 'ekyc');
 
-      // 1. Upload lấy URL lưu database
-      let token = localStorage.getItem('langnghe_access_token');
-      const res = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataUpload,
-      });
+      const res = await api.post('/upload', formDataUpload);
 
       if (!res.ok) throw new Error('Upload failed');
       const data = await res.json();
       setFormData(prev => ({ ...prev, [field]: data.urls?.[0] || '' }));
 
-      // 2. Nhận diện OCR nếu là thẻ CCCD
       if (field === 'cccdUrl') {
         setCheckingEkyc(true);
         setEkycMessage('⏳ AI Đang bóc tách thông tin CCCD...');
@@ -98,24 +95,7 @@ export default function RegisterArtisanPage() {
         const ocrFormData = new FormData();
         ocrFormData.append('image', file);
 
-        let resOcr = await fetch(`${API_BASE}/ekyc/ocr`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: ocrFormData,
-        });
-
-        // Tự động làm mới Token nếu phiên đăng nhập hết hạn (Mã 401)
-        if (resOcr.status === 401) {
-          const refreshed = await handleRefreshTokens();
-          if (refreshed) {
-            token = localStorage.getItem('langnghe_access_token');
-            resOcr = await fetch(`${API_BASE}/ekyc/ocr`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}` },
-              body: ocrFormData,
-            });
-          }
-        }
+        const resOcr = await api.post('/ekyc/ocr', ocrFormData);
 
         if (resOcr.ok) {
           const dataOcr = await resOcr.json();
@@ -127,15 +107,13 @@ export default function RegisterArtisanPage() {
           }
         } else {
           const errData = await resOcr.json().catch(() => ({}));
-          setEkycMessage(`❌ Từ chối: ${errData.message || 'Không tìm thấy CCCD'} - Mã Server: ${resOcr.status}`);
-          // Vô hiệu hóa ảnh vừa tải để bắt người dùng chụp lại CCCD
+          setEkycMessage(`❌ Từ chối: ${errData.message || 'Không tìm thấy CCCD'}`);
           setFileCccd(null);
           setFormData(prev => ({ ...prev, cccdUrl: '' }));
         }
       }
     } catch (err) {
       alert('Tải ảnh lên thất bại. Vui lòng thử lại.');
-      e.target.value = '';
     } finally {
       if (field === 'avatarUrl') setUploadingAvatar(false);
       else {
@@ -157,35 +135,16 @@ export default function RegisterArtisanPage() {
     setFaceMatched(null);
 
     const matchFormData = new FormData();
-    matchFormData.append('files', fileCccd); // phai upload 2 file
+    matchFormData.append('files', fileCccd);
     matchFormData.append('files', file);
 
-    let token = localStorage.getItem('langnghe_access_token');
-
     try {
-      let resMatch = await fetch(`${API_BASE}/ekyc/face-match`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: matchFormData,
-      });
-
-      if (resMatch.status === 401) {
-        const refreshed = await handleRefreshTokens();
-        if (refreshed) {
-          token = localStorage.getItem('langnghe_access_token');
-          resMatch = await fetch(`${API_BASE}/ekyc/face-match`, {
-             method: 'POST',
-             headers: { Authorization: `Bearer ${token}` },
-             body: matchFormData,
-          });
-        }
-      }
+      const resMatch = await api.post('/ekyc/face-match', matchFormData);
 
       if (resMatch.ok) {
         const dataMatch = await resMatch.json();
         const similarityScore = Number(dataMatch.similarity);
         
-        // Hạ mức khắt khe: FPT yêu cầu ~85% mới match=true. Ở mức Demo, chỉ cần >40% là ta cho qua!
         if (dataMatch.match || similarityScore >= 40) {
           setFaceMatched(true);
           setEkycMessage(`✅ Chính chủ! Độ khớp: ${similarityScore}% (Đã duyệt)`);
@@ -196,7 +155,7 @@ export default function RegisterArtisanPage() {
       } else {
         const errData = await resMatch.json().catch(() => ({}));
         setFaceMatched(false);
-        setEkycMessage(`❌ Lỗi ảnh Selfie: ${errData.message || 'Không xác định.'} (Mã lỗi: ${resMatch.status})`);
+        setEkycMessage(`❌ Lỗi ảnh Selfie: ${errData.message || 'Không xác định.'}`);
       }
     } catch {
        setFaceMatched(false);
@@ -217,30 +176,8 @@ export default function RegisterArtisanPage() {
       return;
     }
 
-    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})\b/;
-    if (!phoneRegex.test(formData.phone)) {
-      setError('Số điện thoại không hợp lệ (Phải là số Việt Nam 10 số).');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.fullName.trim().length < 2) {
-      setError('Nghệ danh / Tên xưởng phải có ít nhất 2 ký tự.');
-      setLoading(false);
-      return;
-    }
-
-    const token = localStorage.getItem('langnghe_access_token');
-    
     try {
-      const res = await fetch(`${API_BASE}/artisans/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await api.post('/artisans/register', formData);
 
       const data = await res.json().catch(() => ({}));
       
@@ -268,16 +205,9 @@ export default function RegisterArtisanPage() {
 
   return (
     <main className="min-h-screen bg-[#F9F9F7] text-[#1A1C1C]">
-      <nav className="border-b border-[#C84B31]/10 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center gap-4 px-6 py-4">
-          <Link href="/" className="text-zinc-400 hover:text-[#C84B31]">
-            ← Quay lại trang chủ
-          </Link>
-          <span className="font-bold text-[#C84B31]">Đăng Ký Xưởng Mới</span>
-        </div>
-      </nav>
+      <Navbar showSearch={false} activePage="none" />
 
-      <section className="mx-auto max-w-2xl px-6 py-12">
+      <section className="mx-auto max-w-2xl px-6 pt-28 pb-20">
         <div className="mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight">Trở Thành Nghệ Nhân</h1>
           <p className="mt-2 text-lg text-zinc-500">
@@ -287,7 +217,6 @@ export default function RegisterArtisanPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl bg-white p-8 shadow-sm border border-zinc-100">
           
-          {/* VÙNG EKYC CHỨNG MINH THÂN PHẬN */}
           <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100 mb-6">
             <h3 className="font-bold text-emerald-800 mb-4 flex items-center gap-2">
               <span className="bg-emerald-200 text-emerald-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">🔒</span>
@@ -295,7 +224,6 @@ export default function RegisterArtisanPage() {
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-               {/* 1. UPLOAD CCCD */}
                <div className="space-y-2 border border-dashed border-emerald-300 rounded-xl p-4 bg-white">
                 <label className="text-xs uppercase tracking-widest text-emerald-700 font-bold block mb-2">1. Ảnh Căn Cước (Face ID) *</label>
                 {fileCccd ? (
@@ -309,7 +237,6 @@ export default function RegisterArtisanPage() {
                 )}
                </div>
 
-               {/* 2. UPLOAD SELFIE */}
                <div className={`space-y-2 border border-dashed rounded-xl p-4 transition-all ${fileCccd ? 'border-emerald-300 bg-white' : 'border-zinc-200 bg-zinc-50 opacity-50 pointer-events-none'}`}>
                  <label className="text-xs uppercase tracking-widest text-emerald-700 font-bold block mb-2">2. Kiểm Tra Gương Mặt Selfie *</label>
                  {faceMatched ? (
@@ -331,10 +258,9 @@ export default function RegisterArtisanPage() {
               </div>
             )}
             {faceMatched === false && (
-              <div className="mt-2 text-xs font-semibold text-red-500">⚠ Vui lòng chụp lại ảnh Selfie trùng khớp với khuôn mặt trên CCCD.</div>
+              <div className="mt-2 text-xs font-semibold text-red-500">⚠ Vui lòng chụp lại ảnh Selfie trùng khớp.</div>
             )}
           </div>
-
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/images';
 
 export default function AddProductPage() {
@@ -29,18 +30,22 @@ export default function AddProductPage() {
 
   useEffect(() => {
     const fetchCats = async () => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
-      const json = await res.json();
-      const catData = json.data || [];
-      
-      // Append "Other" option
-      const enhancedCats = [...catData, { id: 'other', name: 'Khác (Tự nhập...)', slug: 'other' }];
-      setCategories(enhancedCats);
-      
-      if (catData.length > 0) {
-        setFormData(prev => ({ ...prev, category_slug: catData[0].slug }));
-      } else {
-        setFormData(prev => ({ ...prev, category_slug: 'other' }));
+      try {
+        const res = await api.get('/categories');
+        const json = await res.json();
+        const catData = json.data || [];
+        
+        // Append "Other" option
+        const enhancedCats = [...catData, { id: 'other', name: 'Khác (Tự nhập...)', slug: 'other' }];
+        setCategories(enhancedCats);
+        
+        if (catData.length > 0) {
+          setFormData(prev => ({ ...prev, category_slug: catData[0].slug }));
+        } else {
+          setFormData(prev => ({ ...prev, category_slug: 'other' }));
+        }
+      } catch (error) {
+        console.error('Failed to load categories');
       }
     };
     fetchCats();
@@ -58,13 +63,7 @@ export default function AddProductPage() {
     data.append('folderType', 'products');
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: data,
-      });
+      const res = await api.post('/upload', data);
 
       if (res.ok) {
         const result = await res.json();
@@ -81,7 +80,6 @@ export default function AddProductPage() {
       toast.error('Lỗi kết nối khi tải ảnh');
     } finally {
       setUploading(false);
-      // Reset input value to allow selecting same file again
       e.target.value = '';
     }
   };
@@ -101,7 +99,6 @@ export default function AddProductPage() {
     }
 
     setLoading(true);
-
     let finalCategorySlug = formData.category_slug;
 
     // Handle new category creation
@@ -113,14 +110,7 @@ export default function AddProductPage() {
       }
 
       try {
-        const catRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-          },
-          body: JSON.stringify({ name: newCategoryName }),
-        });
+        const catRes = await api.post('/categories', { name: newCategoryName });
 
         if (catRes.ok) {
           const catJson = await catRes.json();
@@ -140,16 +130,9 @@ export default function AddProductPage() {
     }
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: JSON.stringify({
-          ...formData,
-          category_slug: finalCategorySlug
-        }),
+      const res = await api.post('/products', {
+        ...formData,
+        category_slug: finalCategorySlug
       });
 
       if (res.ok) {
@@ -182,7 +165,6 @@ export default function AddProductPage() {
       <section className="px-8 pb-20 max-w-6xl mx-auto">
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
-          {/* Visual Assets (Left) */}
           <div className="lg:col-span-5 space-y-8">
             <div className="space-y-4">
               <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400 block px-1">Hình ảnh sản phẩm (Tối đa 10 ảnh)</label>
@@ -206,11 +188,11 @@ export default function AddProductPage() {
                 ))}
 
                 {formData.images.length < 10 && (
-                  <div className={`group relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center p-4 transition-all hover:bg-surface-container-low hover:border-primary-container ${uploading ? 'opacity-50' : ''}`}>
-                    <span className="material-symbols-outlined text-3xl text-outline mb-2 group-hover:text-primary-container transition-colors">
+                  <div className={`group relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center p-4 transition-all hover:bg-surface-container-low hover:border-[#c84b31]/40 ${uploading ? 'opacity-50' : ''}`}>
+                    <span className="material-symbols-outlined text-3xl text-outline mb-2 group-hover:text-[#c84b31] transition-colors">
                       {uploading ? 'sync' : 'add_a_photo'}
                     </span>
-                    <p className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary-container transition-colors">
+                    <p className="text-[10px] font-bold text-on-surface-variant group-hover:text-[#c84b31] transition-colors">
                       {uploading ? 'Đang tải lên...' : 'Thêm ảnh'}
                     </p>
                     <input 
@@ -229,12 +211,12 @@ export default function AddProductPage() {
               </p>
             </div>
             
-            <div className="p-6 bg-secondary-container/20 rounded-xl border border-secondary-container/30">
+            <div className="p-6 bg-orange-50 rounded-xl border border-orange-100">
               <div className="flex gap-3">
-                <span className="material-symbols-outlined text-on-secondary-container">tips_and_updates</span>
+                <span className="material-symbols-outlined text-orange-800">tips_and_updates</span>
                 <div>
-                  <h4 className="text-sm font-bold text-on-secondary-container mb-1">Mẹo dành cho Nghệ nhân</h4>
-                  <p className="text-xs text-on-secondary-container/80 leading-relaxed">
+                  <h4 className="text-sm font-bold text-orange-900 mb-1">Mẹo dành cho Nghệ nhân</h4>
+                  <p className="text-xs text-orange-800/80 leading-relaxed">
                     Sử dụng ánh sáng tự nhiên để tôn vinh chất liệu gốm hoặc lụa của bạn. Hãy chụp từ 3-5 góc khác nhau.
                   </p>
                 </div>
@@ -242,7 +224,6 @@ export default function AddProductPage() {
             </div>
           </div>
 
-          {/* Form Details (Right) */}
           <div className="lg:col-span-7 space-y-10">
             <div className="bg-white p-8 rounded-xl shadow-sm space-y-8 border border-black/5">
               <div className="flex flex-col space-y-2">
@@ -251,7 +232,7 @@ export default function AddProductPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="text-xl font-medium text-on-surface border-b border-outline/20 focus:border-primary-container py-2 outline-none transition-colors"
+                  className="text-xl font-medium text-on-surface border-b border-outline/20 focus:border-[#c84b31] py-2 outline-none transition-colors"
                   placeholder="Ví dụ: Bình Gốm Men Lam Cổ"
                   type="text"
                 />
@@ -263,7 +244,7 @@ export default function AddProductPage() {
                   <select
                     value={formData.category_slug}
                     onChange={(e) => setFormData({...formData, category_slug: e.target.value})}
-                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-primary-container transition-colors"
+                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                   >
                     {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
                   </select>
@@ -274,22 +255,21 @@ export default function AddProductPage() {
                     required
                     value={formData.quantity}
                     onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
-                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-primary-container transition-colors"
+                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                     placeholder="01"
                     type="number"
                   />
                 </div>
               </div>
 
-              {/* Conditional Input for New Category */}
               {formData.category_slug === 'other' && (
                 <div className="flex flex-col space-y-2 animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] uppercase tracking-widest font-bold text-primary-container">Tên danh mục mới</label>
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-[#c84b31]">Tên danh mục mới</label>
                   <input
                     required
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="bg-transparent border-b-2 border-primary-container py-2 outline-none text-on-surface font-bold placeholder:font-normal placeholder:text-stone-300"
+                    className="bg-transparent border-b-2 border-[#c84b31] py-2 outline-none text-on-surface font-bold placeholder:font-normal placeholder:text-stone-300"
                     placeholder="Nhập tên danh mục (vd: Trang Sức Phong Thủy...)"
                     type="text"
                   />
@@ -301,27 +281,26 @@ export default function AddProductPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="bg-transparent border border-outline/20 p-3 rounded-lg outline-none focus:border-primary-container transition-colors"
+                  className="bg-transparent border border-outline/20 p-3 rounded-lg outline-none focus:border-[#c84b31] transition-colors"
                   placeholder="Kể câu chuyện về sản phẩm này..."
                   rows={4}
                 ></textarea>
               </div>
             </div>
 
-            {/* Craft Info Section */}
             <div className="bg-white p-8 rounded-xl shadow-sm space-y-8 border border-black/5">
               <h3 className="text-lg font-bold text-on-surface">Thông tin Làng Nghề</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <input
                   value={formData.material}
                   onChange={(e) => setFormData({...formData, material: e.target.value})}
-                  className="border-b border-outline/20 py-2 outline-none focus:border-primary-container transition-colors"
+                  className="border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                   placeholder="Chất liệu (vd: Gốm nung)"
                 />
                 <input
                    value={formData.origin}
                    onChange={(e) => setFormData({...formData, origin: e.target.value})}
-                   className="border-b border-outline/20 py-2 outline-none focus:border-primary-container transition-colors"
+                   className="border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                    placeholder="Xuất xứ (vd: Bát Tràng)"
                 />
                 <div className="flex flex-col gap-1">
@@ -330,13 +309,12 @@ export default function AddProductPage() {
                       type="number"
                       value={formData.processingTime}
                       onChange={(e) => setFormData({...formData, processingTime: parseInt(e.target.value) || 0})}
-                      className="border-b border-outline/20 py-2 outline-none focus:border-primary-container transition-colors"
+                      className="border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                    />
                 </div>
               </div>
             </div>
 
-            {/* Pricing Section */}
             <div className="bg-white p-8 rounded-xl shadow-sm space-y-8 border border-black/5">
               <h3 className="text-lg font-bold text-on-surface">Cấu hình Giá</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -346,7 +324,7 @@ export default function AddProductPage() {
                     required
                     value={formData.price_retail}
                     onChange={(e) => setFormData({...formData, price_retail: parseInt(e.target.value) || 0})}
-                    className="border-b border-outline/20 py-2 font-bold text-primary-container text-xl outline-none focus:border-primary transition-colors"
+                    className="border-b border-outline/20 py-2 font-bold text-[#c84b31] text-xl outline-none focus:border-[#c84b31] transition-colors"
                     placeholder="500,000"
                     type="number"
                   />
@@ -356,7 +334,7 @@ export default function AddProductPage() {
                   <input
                     value={formData.price_wholesale}
                     onChange={(e) => setFormData({...formData, price_wholesale: parseInt(e.target.value) || 0})}
-                    className="border-b border-outline/20 py-2 font-bold text-secondary text-xl outline-none focus:border-secondary transition-colors"
+                    className="border-b border-outline/20 py-2 font-bold text-[#52652a] text-xl outline-none focus:border-[#52652a] transition-colors"
                     placeholder="350,000"
                     type="number"
                   />
@@ -367,7 +345,7 @@ export default function AddProductPage() {
             <button
               type="submit"
               disabled={loading || uploading}
-              className="w-full bg-primary-container text-white font-bold py-5 rounded-xl shadow-lg shadow-primary-container/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
+              className="w-full bg-[#c84b31] text-white font-bold py-5 rounded-xl shadow-lg shadow-[#c84b31]/20 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
             >
               {loading ? 'Đang thực hiện kỹ thuật nung...' : 'Đăng Sản Phẩm'}
             </button>
