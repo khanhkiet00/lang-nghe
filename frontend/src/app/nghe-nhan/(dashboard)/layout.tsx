@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ArtisanSidebar from '@/components/ArtisanSidebar';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { api } from '@/lib/api';
 
 export default function ArtisanDashboardLayout({
   children,
@@ -17,18 +16,8 @@ export default function ArtisanDashboardLayout({
 
   useEffect(() => {
     async function checkAuth() {
-      const token = localStorage.getItem('langnghe_access_token');
-      if (!token) {
-        router.push('/auth?mode=login');
-        return;
-      }
-
       try {
-        const res = await fetch(`${API_BASE}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await api.get('/auth/me');
 
         if (!res.ok) {
           router.push('/auth?mode=login');
@@ -36,13 +25,15 @@ export default function ArtisanDashboardLayout({
         }
 
         const data = await res.json();
-        if (!data.roles.includes('artisan')) {
-          router.push('/'); // Or a "not authorized" page
+        const roles = data.roles || [];
+        if (!roles.includes('artisan')) {
+          router.push('/');
           return;
         }
 
         setAuthorized(true);
       } catch (error) {
+        console.error('Auth check failed:', error);
         router.push('/auth?mode=login');
       } finally {
         setLoading(false);
@@ -57,7 +48,7 @@ export default function ArtisanDashboardLayout({
       <div className="flex min-h-screen items-center justify-center bg-[#F9F9F7]">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#C84B31] border-t-transparent"></div>
-          <p className="text-sm font-medium text-zinc-500">Đang kiểm tra quyền truy cập nghệ nhân...</p>
+          <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Đang kết nối lò nung...</p>
         </div>
       </div>
     );
@@ -68,7 +59,7 @@ export default function ArtisanDashboardLayout({
   return (
     <div className="flex bg-[#F9F9F7] text-[#1A1C1C] min-h-screen antialiased">
       <ArtisanSidebar />
-      <div className="flex-1 min-w-0 overflow-y-auto">
+      <div className="flex-1 min-w-0 overflow-y-auto pt-16 pb-24 md:pt-0 md:pb-0">
         {children}
       </div>
     </div>

@@ -17,7 +17,7 @@ export class AnalyticsController {
   @Get('buyer')
   async getBuyerAnalytics(
     @Request() req,
-    @Query('timeFilter') timeFilter: 'month' | 'quarter' | 'year' = 'month',
+    @Query('timeFilter') timeFilter: 'day' | 'month' | 'quarter' | 'year' = 'month',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
@@ -34,7 +34,7 @@ export class AnalyticsController {
   @Get('artisan')
   async getArtisanAnalytics(
     @Request() req,
-    @Query('timeFilter') timeFilter: 'month' | 'quarter' | 'year' = 'month',
+    @Query('timeFilter') timeFilter: 'day' | 'month' | 'quarter' | 'year' = 'month',
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {

@@ -250,10 +250,26 @@ export class AuthService {
 
       const roles = user.roles.map((r) => r.role);
       const newPayload: JwtPayload = { sub: user.id, email: user.email, roles };
+      const newRefreshToken = this.jwtService.sign(newPayload, {
+        expiresIn: '7d',
+      });
+
+      await this.prisma.refreshToken.update({
+        where: { id: persisted.id },
+        data: { revoked: true },
+      });
+
+      await this.prisma.refreshToken.create({
+        data: {
+          userId: user.id,
+          token: await bcrypt.hash(newRefreshToken, 10),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
 
       return {
         accessToken: this.jwtService.sign(newPayload, { expiresIn: '15m' }),
-        refreshToken: this.jwtService.sign(newPayload, { expiresIn: '7d' }),
+        refreshToken: newRefreshToken,
       };
     } catch {
       throw new UnauthorizedException('Refresh token không hợp lệ');

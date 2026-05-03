@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { motion } from 'framer-motion';
 import Pagination from '@/components/ui/Pagination';
@@ -47,11 +48,7 @@ export default function ProductListPage() {
         search: search
       });
       
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/mine?${query.toString()}`, {
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        }
-      });
+      const res = await api.get(`/products/mine?${query.toString()}`);
       const json = await res.json();
       const items = json.data?.items || json.data || [];
       setProducts(items);
@@ -89,18 +86,10 @@ export default function ProductListPage() {
   }, []); // Only on mount
 
   const handleToggleActive = async (product: Product) => {
-// ... existing toggle logic ...
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${product.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: JSON.stringify({
-          isActive: !product.isActive,
-          version: product.version
-        }),
+      const res = await api.patch(`/products/${product.id}`, {
+        isActive: !product.isActive,
+        version: product.version
       });
 
       if (res.ok) {
@@ -124,12 +113,7 @@ export default function ProductListPage() {
     if (!productToDelete) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${productToDelete}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-      });
+      const res = await api.delete(`/products/${productToDelete}`);
 
       if (res.ok) {
         toast.success('Đã xóa tác phẩm thành công');
@@ -234,6 +218,7 @@ export default function ProductListPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-y border-[#1a1c1c]/5 bg-[#fdfcfb]">
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">#</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Ảnh</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">Tên Sản Phẩm</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant/50">D.Mục</th>
@@ -246,14 +231,14 @@ export default function ProductListPage() {
             <tbody className="divide-y divide-[#1a1c1c]/5 min-h-[400px]">
               {loading ? (
                 <tr>
-                   <td colSpan={7} className="px-8 py-20 text-center">
+                   <td colSpan={8} className="px-8 py-20 text-center">
                       <div className="w-8 h-8 border-4 border-[#c84b31] border-t-transparent rounded-full animate-spin mx-auto"></div>
                       <p className="mt-4 text-xs font-bold text-on-surface-variant/40 uppercase tracking-widest">Đang tải di sản...</p>
                    </td>
                  </tr>
               ) : products.length === 0 ? (
                 <tr>
-                   <td colSpan={7} className="px-8 py-20 text-center text-on-surface-variant/40 font-medium italic">
+                   <td colSpan={8} className="px-8 py-20 text-center text-on-surface-variant/40 font-medium italic">
                       Không tìm thấy tác phẩm nào phù hợp.
                    </td>
                  </tr>
@@ -272,7 +257,14 @@ export default function ProductListPage() {
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <div className="font-bold text-on-surface text-base">{product.title}</div>
+                    <Link 
+                      href={`/san-pham/${product.slug}`}
+                      target="_blank"
+                      className="font-bold text-on-surface text-base hover:text-[#c84b31] transition-colors flex items-center gap-2 group/link"
+                    >
+                      {product.title}
+                      <span className="material-symbols-outlined text-sm opacity-0 group-hover/link:opacity-100 transition-opacity">open_in_new</span>
+                    </Link>
                     <div className="text-[9px] text-on-surface-variant/50 font-medium uppercase tracking-widest mt-1">
                       Slug: {product.slug}
                     </div>

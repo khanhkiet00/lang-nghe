@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/images';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -36,11 +37,8 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function fetchProfile() {
-      const token = localStorage.getItem('langnghe_access_token');
       try {
-        const res = await fetch(`${API_BASE}/artisans/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get('/artisans/me');
 
         if (!res.ok) {
           throw new Error('Failed to load artisan profile');
@@ -71,17 +69,12 @@ export default function SettingsPage() {
     if (!file) return;
 
     setUploading(true);
-    const token = localStorage.getItem('langnghe_access_token');
     const uploadData = new FormData();
     uploadData.append('files', file);
     uploadData.append('folderType', 'artisans');
 
     try {
-      const res = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: uploadData,
-      });
+      const res = await api.post('/upload', uploadData);
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -101,17 +94,8 @@ export default function SettingsPage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
-    const token = localStorage.getItem('langnghe_access_token');
-
     try {
-      const res = await fetch(`${API_BASE}/artisans/me`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await api.post('/artisans/me', formData);
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { api } from '@/lib/api';
 import { resolveImageUrl } from '@/lib/images';
 
 export default function EditProductPage() {
@@ -12,7 +13,6 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
   
   const [formData, setFormData] = useState({
     title: '',
@@ -35,13 +35,13 @@ export default function EditProductPage() {
     const fetchData = async () => {
       try {
         // Fetch categories
-        const catRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+        const catRes = await api.get('/categories');
         const catJson = await catRes.json();
         const catData = catJson.data || [];
         setCategories([...catData, { id: 'other', name: 'Khác (Tự nhập...)', slug: 'other' }]);
 
         // Fetch product details
-        const prodRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`);
+        const prodRes = await api.get(`/products/${id}`);
         if (!prodRes.ok) throw new Error('Không thể tải thông tin sản phẩm');
         
         const prodJson = await prodRes.json();
@@ -85,13 +85,7 @@ export default function EditProductPage() {
     data.append('folderType', 'products');
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: data,
-      });
+      const res = await api.post('/upload', data);
 
       if (res.ok) {
         const result = await res.json();
@@ -99,6 +93,7 @@ export default function EditProductPage() {
           ...prev,
           images: [...prev.images, ...result.urls]
         }));
+        toast.success(`Đã tải lên ${files.length} ảnh thành công`);
       } else {
         const err = await res.json();
         toast.error('Lỗi tải ảnh: ' + (err.message || 'Dung lượng file quá lớn'));
@@ -122,21 +117,8 @@ export default function EditProductPage() {
     e.preventDefault();
     setSaving(true);
 
-    let finalCategorySlug = formData.category_slug;
-    if (formData.category_slug === 'other') {
-      // Logic for new category (reusing from AddProductPage if needed)
-      // For simplicity in Edit, we assume category exists or user picks existing
-    }
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + localStorage.getItem('langnghe_access_token'),
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await api.patch(`/products/${id}`, formData);
 
       if (res.ok) {
         toast.success('Cập nhật sản phẩm thành công!');
@@ -152,7 +134,12 @@ export default function EditProductPage() {
     }
   };
 
-  if (loading) return <div className="p-12 text-center">Đang tải dữ liệu sản phẩm...</div>;
+  if (loading) return (
+    <div className="p-20 flex flex-col items-center justify-center gap-4">
+      <div className="w-8 h-8 border-4 border-[#c84b31] border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Đang tải dữ liệu sản phẩm...</p>
+    </div>
+  );
 
   return (
     <main className="min-h-screen">
@@ -193,8 +180,8 @@ export default function EditProductPage() {
                 ))}
 
                 {formData.images.length < 10 && (
-                  <div className={`group relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center p-4 transition-all hover:bg-surface-container-low hover:border-primary-container ${uploading ? 'opacity-50' : ''}`}>
-                    <span className="material-symbols-outlined text-3xl text-outline mb-2 group-hover:text-primary-container transition-colors">
+                  <div className={`group relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center text-center p-4 transition-all hover:bg-surface-container-low hover:border-[#c84b31]/40 ${uploading ? 'opacity-50' : ''}`}>
+                    <span className="material-symbols-outlined text-3xl text-outline mb-2 group-hover:text-[#c84b31] transition-colors">
                       {uploading ? 'sync' : 'add_a_photo'}
                     </span>
                     <input 
@@ -210,14 +197,14 @@ export default function EditProductPage() {
               </div>
             </div>
             
-            <div className="p-6 bg-[#C84B31]/5 rounded-xl border border-[#C84B31]/10">
+            <div className="p-6 bg-orange-50 rounded-xl border border-orange-100">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-on-surface">Trạng thái Hiển thị</span>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, isActive: !formData.isActive})}
                   className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    formData.isActive ? 'bg-[#52652a] text-white' : 'bg-stone-200 text-stone-500'
+                    formData.isActive ? 'bg-[#52652a] text-white shadow-lg shadow-[#52652a]/20' : 'bg-stone-200 text-stone-500'
                   }`}
                 >
                   {formData.isActive ? 'Đang Hiện' : 'Đang Ẩn'}
@@ -234,7 +221,7 @@ export default function EditProductPage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="text-xl font-medium text-on-surface border-b border-outline/20 focus:border-[#C84B31] py-2 outline-none transition-colors"
+                  className="text-xl font-medium text-on-surface border-b border-outline/20 focus:border-[#c84b31] py-2 outline-none transition-colors"
                   type="text"
                 />
               </div>
@@ -245,7 +232,7 @@ export default function EditProductPage() {
                   <select
                     value={formData.category_slug}
                     onChange={(e) => setFormData({...formData, category_slug: e.target.value})}
-                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#C84B31] transition-colors"
+                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                   >
                     {categories.map(c => <option key={c.id} value={c.slug}>{c.name}</option>)}
                   </select>
@@ -256,7 +243,7 @@ export default function EditProductPage() {
                     required
                     value={formData.quantity}
                     onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
-                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#C84B31] transition-colors"
+                    className="bg-transparent border-b border-outline/20 py-2 outline-none focus:border-[#c84b31] transition-colors"
                     type="number"
                   />
                 </div>
@@ -267,7 +254,7 @@ export default function EditProductPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="bg-transparent border border-outline/20 p-3 rounded-lg outline-none focus:border-[#C84B31] transition-colors"
+                  className="bg-transparent border border-outline/20 p-3 rounded-lg outline-none focus:border-[#c84b31] transition-colors"
                   rows={4}
                 ></textarea>
               </div>
@@ -282,7 +269,7 @@ export default function EditProductPage() {
                     required
                     value={formData.price_retail}
                     onChange={(e) => setFormData({...formData, price_retail: parseInt(e.target.value) || 0})}
-                    className="border-b border-outline/20 py-2 font-bold text-[#C84B31] text-xl outline-none focus:border-[#C84B31]"
+                    className="border-b border-outline/20 py-2 font-bold text-[#c84b31] text-xl outline-none focus:border-[#c84b31]"
                     type="number"
                   />
                 </div>
@@ -301,7 +288,7 @@ export default function EditProductPage() {
             <button
               type="submit"
               disabled={saving || uploading}
-              className="w-full bg-[#1A1C1C] text-white font-bold py-5 rounded-xl shadow-lg transition-all hover:bg-[#C84B31] disabled:opacity-50"
+              className="w-full bg-[#1A1C1C] text-white font-bold py-5 rounded-xl shadow-lg transition-all hover:bg-[#c84b31] disabled:opacity-50"
             >
               {saving ? 'Đang lưu tác phẩm...' : 'Cập Nhật Tác Phẩm'}
             </button>

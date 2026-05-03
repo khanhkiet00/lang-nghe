@@ -37,6 +37,24 @@ const ORDER_INCLUDE = {
       },
     },
   },
+  reviews: {
+    select: {
+      id: true,
+      reviewer_id: true,
+      reviewee_id: true,
+      order_id: true,
+      createdAt: true,
+    },
+  },
+  productReviews: {
+    select: {
+      id: true,
+      reviewer_id: true,
+      productId: true,
+      orderId: true,
+      createdAt: true,
+    },
+  },
 };
 
 @Injectable()
@@ -179,10 +197,33 @@ export class OrdersService {
     const page = Number(query.page ?? 1);
     const limit = Number(query.limit ?? 10);
 
-    const where = {
+    const where: any = {
       buyerId,
       ...(query.status ? { status: query.status } : {}),
     };
+
+    if (query.search) {
+      const searchPattern = `%${query.search}%`;
+      const matchedOrders = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT o.id FROM "Order" o
+        LEFT JOIN "OrderItem" oi ON o.id = oi."orderId"
+        LEFT JOIN "Product" pr ON oi."productId" = pr.id
+        WHERE o."buyerId" = ${buyerId}
+          AND (
+            unaccent(o.id::text) ILIKE unaccent(${searchPattern})
+            OR unaccent(pr.title) ILIKE unaccent(${searchPattern})
+          )
+        GROUP BY o.id
+      `;
+      const ids = matchedOrders.map((row) => row.id);
+      if (ids.length === 0) {
+        return {
+          items: [],
+          pagination: { page, limit, total: 0, totalPages: 1 },
+        };
+      }
+      where.id = { in: ids };
+    }
 
     const [total, items] = await Promise.all([
       this.prisma.order.count({ where }),
@@ -221,10 +262,9 @@ export class OrdersService {
     return order;
   }
 
-  /** Nghệ nhân cập nhật trạng thái đơn hàng */
   async updateOrderStatus(
     orderId: string,
-    artisanId: string,
+    userId: string,
     dto: UpdateOrderStatusDto,
   ) {
     const order = await this.prisma.order.findUnique({
@@ -232,24 +272,38 @@ export class OrdersService {
     });
 
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
-    if (order.artisanId !== artisanId) {
+    if (order.artisanId !== userId && order.buyerId !== userId) {
       throw new ForbiddenException('Bạn không có quyền cập nhật đơn hàng này');
     }
 
-    // Kiểm tra luồng trạng thái hợp lệ
-    const validTransitions: Record<string, string[]> = {
-      pending: ['processing', 'cancelled'],
-      processing: ['shipped'],
-      shipped: ['completed'],
-      completed: [],
-      cancelled: [],
-    };
+    // Ưu tiên kiểm tra quyền Nghệ nhân trước (trường hợp tự mua hàng của chính mình)
+    if (order.artisanId === userId) {
+      // Logic cho nghệ nhân
+      const validTransitions: Record<string, string[]> = {
+        pending: ['processing', 'cancelled'],
+        processing: ['shipped'],
+        shipped: ['completed'],
+        completed: [],
+        cancelled: [],
+      };
 
-    const allowed = validTransitions[order.status] ?? [];
-    if (!allowed.includes(dto.status)) {
-      throw new BadRequestException(
-        `Không thể chuyển từ trạng thái "${order.status}" sang "${dto.status}"`,
-      );
+      const allowed = validTransitions[order.status] ?? [];
+      if (!allowed.includes(dto.status)) {
+        throw new BadRequestException(
+          `Không thể chuyển từ trạng thái "${order.status}" sang "${dto.status}"`,
+        );
+      }
+    } else if (order.buyerId === userId) {
+      // Logic cho người mua
+      const allowedForBuyer = {
+        pending: ['cancelled'],
+        shipped: ['completed'],
+      };
+      
+      const allowed = allowedForBuyer[order.status as keyof typeof allowedForBuyer] ?? [];
+      if (!allowed.includes(dto.status)) {
+        throw new ForbiddenException('Bạn không được phép thực hiện thao tác này');
+      }
     }
 
     if (dto.status === 'cancelled' && !dto.cancelReason) {

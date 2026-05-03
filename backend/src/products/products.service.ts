@@ -20,46 +20,26 @@ export class ProductsService {
     );
   }
 
-  private getReviewAverage(review: {
-    rating_quality: number;
-    rating_accuracy: number;
-    rating_shipping: number;
-    rating_communication: number;
-    rating_payment: number;
-  }) {
-    return (
-      review.rating_quality +
-      review.rating_accuracy +
-      review.rating_shipping +
-      review.rating_communication +
-      review.rating_payment
-    ) / 5;
-  }
-
-  private async getReviewSummaries(userIds: string[]) {
-    const uniqueIds = Array.from(new Set(userIds));
+  private async getReviewSummaries(productIds: string[]) {
+    const uniqueIds = Array.from(new Set(productIds));
     if (uniqueIds.length === 0) {
       return new Map<string, { total: number; averageRating: number }>();
     }
 
-    const reviews = await this.prisma.review.findMany({
-      where: { reviewee_id: { in: uniqueIds } },
+    const reviews = await this.prisma.productReview.findMany({
+      where: { productId: { in: uniqueIds } },
       select: {
-        reviewee_id: true,
-        rating_quality: true,
-        rating_accuracy: true,
-        rating_shipping: true,
-        rating_communication: true,
-        rating_payment: true,
+        productId: true,
+        rating: true,
       },
     });
 
     const totals = new Map<string, { total: number; score: number }>();
     for (const review of reviews) {
-      const current = totals.get(review.reviewee_id) ?? { total: 0, score: 0 };
+      const current = totals.get(review.productId) ?? { total: 0, score: 0 };
       current.total += 1;
-      current.score += this.getReviewAverage(review);
-      totals.set(review.reviewee_id, current);
+      current.score += review.rating;
+      totals.set(review.productId, current);
     }
 
     return new Map(
@@ -78,13 +58,13 @@ export class ProductsService {
     );
   }
 
-  private attachReviewSummaryToProduct<T extends { artisanId: string }>(
+  private attachReviewSummaryToProduct<T extends { id: string }>(
     product: T,
     summaries: Map<string, { total: number; averageRating: number }>,
   ) {
     return {
       ...product,
-      reviewSummary: summaries.get(product.artisanId) ?? {
+      reviewSummary: summaries.get(product.id) ?? {
         total: 0,
         averageRating: 0,
       },
@@ -251,7 +231,7 @@ export class ProductsService {
       },
     });
     if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
-    const summaries = await this.getReviewSummaries([product.artisanId]);
+    const summaries = await this.getReviewSummaries([product.id]);
     return this.attachReviewSummaryToProduct(product, summaries);
   }
 
@@ -326,7 +306,7 @@ export class ProductsService {
     ]);
 
     const summaries = await this.getReviewSummaries(
-      items.map((product) => product.artisanId),
+      items.map((product) => product.id),
     );
 
     return {

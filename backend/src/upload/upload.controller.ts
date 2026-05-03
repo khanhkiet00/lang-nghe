@@ -18,6 +18,9 @@ const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
   'image/webp',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
 ]);
 
 const FOLDER_BY_TYPE: Record<string, string> = {
@@ -39,10 +42,11 @@ function uploadBufferToCloudinary(
   folder: string,
 ): Promise<UploadApiResponse> {
   return new Promise((resolve, reject) => {
+    const resourceType = file.mimetype.startsWith('video/') ? 'video' : 'image';
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: 'image',
+        resource_type: resourceType,
         overwrite: false,
       },
       (error, result) => {
@@ -69,12 +73,12 @@ export class UploadController {
   @UseInterceptors(
     FilesInterceptor('files', 10, {
       storage: memoryStorage(),
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 50 * 1024 * 1024 }, // Tang limit cho video (50MB)
       fileFilter: (req, file, cb) => {
         if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
           cb(
             new BadRequestException(
-              'Chi ho tro anh JPG, PNG hoac WEBP',
+              'Chỉ hỗ trợ ảnh (JPG, PNG, WEBP) hoặc video (MP4, WEBM, MOV)',
             ) as unknown as Error,
             false,
           );
