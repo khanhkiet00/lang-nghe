@@ -3,6 +3,11 @@ import { notFound } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/images';
 import { Navbar } from '@/components/ui/Navbar';
 
+const API_BASE =
+  process.env.API_INTERNAL_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3001/api/v1';
+
 type Product = {
   id: string;
   title: string;
@@ -41,7 +46,7 @@ interface ArtisanProfile {
 
 async function getArtisanProfile(slug: string): Promise<ArtisanProfile | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/artisans/${slug}`, {
+    const res = await fetch(`${API_BASE}/artisans/${slug}`, {
       next: { revalidate: 300 },
     });
 

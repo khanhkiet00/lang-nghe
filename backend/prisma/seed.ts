@@ -6,9 +6,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Clearing old mocked data...');
   try {
+    await prisma.reviewReaction.deleteMany();
+    await prisma.reviewReply.deleteMany();
+    await prisma.productReview.deleteMany();
     await prisma.review.deleteMany();
     await prisma.orderItem.deleteMany();
     await prisma.order.deleteMany();
+    await prisma.shippingAddress.deleteMany();
     await prisma.productImage.deleteMany();
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
@@ -19,7 +23,7 @@ async function main() {
     await prisma.otp.deleteMany();
     await prisma.user.deleteMany();
   } catch (e) {
-    console.log('Cleanup logic error, ignoring for fresh start...');
+    console.error('Cleanup logic error:', e);
   }
 
   const defaultPassword = 'password123';

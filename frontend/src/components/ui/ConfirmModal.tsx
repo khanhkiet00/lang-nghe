@@ -1,13 +1,14 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import type { ReactNode } from 'react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   cancelText?: string;
   type?: 'danger' | 'info';
@@ -56,9 +57,9 @@ export default function ConfirmModal({
             <h3 className="mb-2 text-2xl font-black tracking-tight text-[#1a1c1c]">
               {title}
             </h3>
-            <p className="mb-8 text-zinc-500 leading-relaxed">
+            <div className="mb-8 text-zinc-500 leading-relaxed">
               {message}
-            </p>
+            </div>
 
             <div className="flex w-full gap-3">
               <button
